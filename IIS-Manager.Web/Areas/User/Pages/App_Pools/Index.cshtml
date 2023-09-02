@@ -1,0 +1,258 @@
+﻿@page
+@model IIS_Manager.Web.Areas.User.Pages.App_Pools.IndexModel
+@{
+}
+
+<div class="container p-3">
+    <input type="hidden" value="@Model.IisServers" />
+    @foreach (var iisServer in Model.IisServers)
+    {
+        <div class="row pt-4 align-items-center">
+            <div class="col-6">
+                <h2 class="text-primary">IIS-Server: @iisServer.Name</h2>
+            </div>
+        </div>
+        @if (iisServer.AppPools.Any())
+        {
+            <div id="tableContainer_@iisServer.Id" class="row pt-4 align-items-center">
+                <div class="col-6">
+                    <div class="input-group align-items-start">
+                        <span class="input-group-text">
+                            <i class="bi bi-funnel"></i>
+                        </span>
+                        <input type="text" class="form-control mb-3" id="filterInput_@iisServer.Id" placeholder="Name...">
+                    </div>
+                </div>
+                <div class="col-6 text-end" style="height: 53.33px">
+                    <div class="d-flex justify-content-evenly">
+                        <form method="post" asp-area="User" asp-page="/App_Pools/Index" asp-page-handler="Start" asp-route-id="@iisServer.Id">
+                            <input type="hidden" id="selected_stop_@iisServer.Id" name="selected" value="" />
+                            <button type="submit" class="btn btn-outline-success">
+                                <i class="bi bi-play-btn"></i>&nbsp;Start Selected
+                            </button>
+                        </form>
+                        <form method="post" asp-area="User" asp-page="/App_Pools/Index" asp-page-handler="Stop" asp-route-id="@iisServer.Id">
+                            <input type="hidden" id="selected_start_@iisServer.Id" name="selected" value="" />
+                            <button type="submit" class="btn btn-outline-danger">
+                                <i class="bi bi-stop-btn"></i>&nbsp;Stop Selected
+                            </button>
+                        </form>
+                        <form method="post" asp-area="User" asp-page="/App_Pools/Index" asp-page-handler="Restart" asp-route-id="@iisServer.Id">
+                            <input type="hidden" id="selected_restart_@iisServer.Id" name="selected" value="" />
+                            <button type="submit" class="btn btn-outline-warning">
+                                <i class="bi bi-repeat"></i>&nbsp;Restart Selected
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <table id="table_@iisServer.Id" class="table table-bordered table-striped" style="width: 100%">
+                <thead>
+                <tr class="table-primary">
+                    <th>
+
+                    </th>
+                    <th>
+                        Name
+                    </th>
+                    <th>
+                        State
+                    </th>
+                    <th>
+                        Runtime Version
+                    </th>
+                    <th>
+                        Applications
+                    </th>
+                    <th class="fst-italic">
+                        Action
+                    </th>
+                </tr>
+                </thead>
+                <tbody id="appPoolTableBody_@iisServer.Id">
+                <tr>
+                    <td>
+                        <div class="d-flex justify-content-center">
+                            <div class="spinner-border" role="status"></div>
+                        </div>
+                    </td>
+                    <td width="25%">
+                        <div class="d-flex justify-content-center">
+                            <div class="spinner-border" role="status"></div>
+                        </div>
+                    </td>
+                    <td width="15%">
+                        <div class="d-flex justify-content-center">
+                            <div class="spinner-border" role="status"></div>
+                        </div>
+                    </td>
+                    <td width="15%">
+                        <div class="d-flex justify-content-center">
+                            <div class="spinner-border" role="status"></div>
+                        </div>
+                    </td>
+                    <td width="10%">
+                        <div class="d-flex justify-content-center">
+                            <div class="spinner-border" role="status"></div>
+                        </div>
+                    </td>
+                    <td width="30%">
+                        <div class="d-flex justify-content-center">
+                            <div class="spinner-border" role="status"></div>
+                        </div>
+                    </td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <input type="hidden" id="allAppPoolNames_@iisServer.Id" value="@string.Join(",", iisServer.AppPools.Select(ap => ap.Name))" />
+            <script>
+                var allAppPoolNames = document.getElementById("allAppPoolNames_@iisServer.Id").value;
+                var selectedInputStart = document.getElementById("selected_start_@iisServer.Id");
+                selectedInputStart.value = allAppPoolNames;
+                var selectedInputStop = document.getElementById("selected_stop_@iisServer.Id");
+                selectedInputStop.value = allAppPoolNames;
+                var selectedInputRestart = document.getElementById("selected_restart_@iisServer.Id");
+                selectedInputRestart.value = allAppPoolNames;
+
+                document.getElementById("filterInput_@iisServer.Id").addEventListener("keyup", function () {
+                    var input, filter, table, tr, td, i, txtValue;
+                    var selectedAppPoolNames = [];
+                    input = document.getElementById("filterInput_@iisServer.Id");
+                    filter = input.value.toUpperCase();
+                    table = document.getElementById("appPoolTableBody_@iisServer.Id");
+                    tr = table.getElementsByTagName("tr");
+                    for (i = 0; i < tr.length; i++) {
+                        td = tr[i].getElementsByTagName("td")[1];
+                        if (td) {
+                            txtValue = td.textContent || td.innerText;
+                            if (txtValue.toUpperCase().indexOf(filter) > -1) {
+                                tr[i].style.display = "";
+                                selectedAppPoolNames.push(txtValue);
+                            } else {
+                                tr[i].style.display = "none";
+                            }
+                        }
+                    }
+
+                    var selectedInputStart = document.getElementById("selected_start_@iisServer.Id");
+                    selectedInputStart.value = selectedAppPoolNames.join(',').replace(/\s+/g, "").replace(/,\s+/g, ",");
+                    var selectedInputStop = document.getElementById("selected_stop_@iisServer.Id");
+                    selectedInputStop.value = selectedAppPoolNames.join(',').replace(/\s+/g, "").replace(/,\s+/g, ",");
+                    var selectedInputRestart = document.getElementById("selected_restart_@iisServer.Id");
+                    selectedInputRestart.value = selectedAppPoolNames.join(',').replace(/\s+/g, "").replace(/,\s+/g, ",");
+                });
+            
+            </script>
+        }
+        else
+        {
+            <div class="alert alert-danger" role="alert">
+                @iisServer.ErrorMessage
+            </div>
+        }
+    }
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+
+    function getUpdatedAppPoolsData() {
+        $.ajax({
+            url: '/User/App_Pools/Index?handler=AppPools',
+            type: 'GET',
+            dataType: 'json',
+            success: function (data) {
+                console.log('data:', data);
+                updateStates(data);
+                updateSelectedAppPoolNames();
+            },
+            error: function (xhr, status, error) {
+                console.error('Error fetching updated data:', error);
+            }
+        });
+    }
+
+    function updateStates(data) {
+        data.forEach(function (iisServer) {
+            var appPoolTableBody = $('#appPoolTableBody_' + iisServer.id);
+            appPoolTableBody.empty();
+
+            if (iisServer.appPools && iisServer.appPools.length > 0) {
+                iisServer.appPools.forEach(function (appPool) {
+                    var row = $('<tr></tr>');
+
+                    var favoriteCell = $('<td></td>');
+                    var favoriteIcon = $('<i class="bi ' + (appPool.isFavorite ? 'bi-star-fill' : 'bi-star') + '"></i>');
+                    var favoriteButton = $('<button type="submit" class="btn btn-outline-primary"></button>').append(favoriteIcon);
+                    var favoriteForm = $('<form method="post" action="/User/App_Pools?id=' + iisServer.id + '&handler=SetFavorite"><input type="hidden" name="selected" value="' + appPool.name + '">' + '@Html.AntiForgeryToken()' + '</form>').append(favoriteButton);
+                    favoriteCell.append(favoriteForm);
+
+                    var nameCell = $('<td width="25%"></td>').text(appPool.name);
+                    var stateCell = $('<td width="15%"></td>').text(appPool.state);
+                    if (appPool.state === "Started") {
+                        stateCell.addClass("text-success");
+                    } else if (appPool.state === "Stopped") {
+                        stateCell.addClass("text-danger");
+                    }
+                    var runtimeVersionCell = $('<td width="15%"></td>').text(appPool.runtimeVersion);
+                    var applicationsCell = $('<td width="10%"></td>').text(appPool.applications.length);
+
+                    var actionCell = $('<td width="30%"></td>');
+                    var actionButtonGroup = $('<div class="d-flex justify-content-evenly"></div>');
+
+                    var startButton = $('<button type="submit" class="btn btn-outline-success"></button>').html('<i class="bi bi-play-btn"></i>&nbsp;Start');
+                    var startForm = $('<form method="post" action="/User/App_Pools?id=' + iisServer.id + '&handler=Start"><input type="hidden" name="selected" value="' + appPool.name + '">' + '@Html.AntiForgeryToken()' + '</form>').append(startButton);
+
+                    var stopButton = $('<button type="submit" class="btn btn-outline-danger"></button>').html('<i class="bi bi-stop-btn"></i>&nbsp;Stop');
+                    var stopForm = $('<form method="post" action="/User/App_Pools?id=' + iisServer.id + '&handler=Stop"><input type="hidden" name="selected" value="' + appPool.name + '">' + '@Html.AntiForgeryToken()' + '</form>').append(stopButton);
+
+                    var restartButton = $('<button type="submit" class="btn btn-outline-warning"></button>').html('<i class="bi bi-repeat"></i>&nbsp;Restart');
+                    var restartForm = $('<form method="post" action="/User/App_Pools?id=' + iisServer.id + '&handler=Restart"><input type="hidden" name="selected" value="' + appPool.name + '">' + '@Html.AntiForgeryToken()' + '</form>').append(restartButton);
+
+                    actionButtonGroup.append(startForm, stopForm, restartForm);
+                    actionCell.append(actionButtonGroup);
+
+                    row.append(favoriteCell, nameCell, stateCell, runtimeVersionCell, applicationsCell, actionCell);
+
+                    appPoolTableBody.append(row);
+                });
+            } else {
+                var appPoolTable = $('#table_' + iisServer.id);
+                var appPoolTableContainer = $('#tableContainer_' + iisServer.id)
+                appPoolTable.empty();
+                appPoolTableContainer.empty();
+                var errorAlert = $('<div class="alert alert-danger" role="alert"></div>').text(iisServer.errorMessage);
+                appPoolTableContainer.append(errorAlert);
+            }
+        });
+    }
+    
+    function updateSelectedAppPoolNames() {
+        var selectedAppPoolNames = [];
+        $(".table").each(function () {
+            var tableId = $(this).attr("id");
+            var iisServerId = tableId.split("_")[1];
+            var visibleRows = $("#" + tableId + " tbody tr:visible");
+            visibleRows.each(function () {
+                var appPoolName = $(this).find("td:eq(1)").text();
+                selectedAppPoolNames.push(appPoolName);
+            });
+
+            var selectedInputStart = $("#selected_start_" + iisServerId);
+            selectedInputStart.val(selectedAppPoolNames.join(','));
+
+            var selectedInputStop = $("#selected_stop_" + iisServerId);
+            selectedInputStop.val(selectedAppPoolNames.join(','));
+
+            var selectedInputRestart = $("#selected_restart_" + iisServerId);
+            selectedInputRestart.val(selectedAppPoolNames.join(','));
+        });
+    }
+
+    $(document).ready(function () {
+        getUpdatedAppPoolsData();
+    });
+
+
+</script>

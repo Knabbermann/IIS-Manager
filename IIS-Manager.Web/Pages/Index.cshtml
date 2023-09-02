@@ -1,0 +1,125 @@
+﻿@page
+@using IIS_Manager.Utility
+@using Microsoft.AspNetCore.Mvc.TagHelpers
+@model IndexModel
+@{
+}
+
+<div class="container p-3">
+    <div class="row pt-4 align-items-center">
+        <div class="col-6">
+            <h2 class="text-primary">Favorites</h2>
+        </div>
+        <div class="col-6 text-end">
+            <a class="btn btn-outline-primary" asp-area="User" asp-page="/Favorites/Index">
+                <i class="bi bi-pencil-square"></i> &nbsp;Edit Favorites
+            </a>
+        </div>
+    </div>
+    <br />
+
+    <table id="favoritesTable" class="table table-bordered table-striped" style="width: 100%">
+        <thead>
+        <tr class="table-primary">
+            <th>
+                Type
+            </th>
+            <th>
+                Server
+            </th>
+            <th>
+                Name
+            </th>
+            <th>
+                State
+            </th>
+            <th class="fst-italic">
+                Action
+            </th>
+        </tr>
+        </thead>
+        <tbody id="favoritesTableBody">
+        @foreach (var obj in Model.Favorites)
+        {
+            <tr data-asset-id ="@obj.AssetId">
+                <td width="15%">
+                    @obj.AssetType
+                </td>
+                <td width="20%">
+                    @obj.AssetServer
+                </td>
+                <td width="20%">
+                    @obj.AssetName
+                </td>
+                <td class="state-cell" width="15%">
+                    <div class="d-flex justify-content-center">
+                        <div class="spinner-border" role="status"></div>
+                    </div>
+                </td>
+                <td width="30%">
+                    @if (obj.AssetType.Equals(StaticDetails.AssetTypeAppPool))
+                    {
+                        <div class="d-flex justify-content-evenly">
+                            <form method="post" asp-area="User" asp-page="/App_Pools/Index" asp-page-handler="Start" asp-route-id="@obj.AssetId.Split("_")[0]" asp-route-selected="@obj.AssetId.Split("_")[1]" asp-route-redirect="@("/Index")">
+                                <button type="submit" class="btn btn-outline-success">
+                                    <i class="bi bi-play-btn"></i>&nbsp;Start
+                                </button>
+                            </form>
+                            <form method="post" asp-area="User" asp-page="/App_Pools/Index" asp-page-handler="Stop" asp-route-id="@obj.AssetId.Split("_")[0]" asp-route-selected="@obj.AssetId.Split("_")[1]" asp-route-redirect="@("/Index")">
+                                <button type="submit" class="btn btn-outline-danger">
+                                    <i class="bi bi-stop-btn"></i>&nbsp;Stop
+                                </button>
+                            </form>
+                            <form method="post" asp-area="User" asp-page="/App_Pools/Index" asp-page-handler="Restart" asp-route-id="@obj.AssetId.Split("_")[0]" asp-route-selected="@obj.AssetId.Split("_")[1]" asp-route-redirect="@("/Index")">
+                                <button type="submit" class="btn btn-outline-warning">
+                                    <i class="bi bi-repeat"></i>&nbsp;Restart
+                                </button>
+                            </form>
+                        </div>
+                    }
+                </td>
+            </tr>
+        }
+        </tbody>
+    </table>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    function getUpdatedFavoritesData() {
+        $.ajax({
+            url: '/Index?handler=Favorites',
+            type: 'GET',
+            dataType: 'json',
+            success: function (data) {
+                updateStates(data);
+            },
+            error: function (xhr, status, error) {
+                console.error('Error fetching updated data:', error);
+            }
+        });
+    }
+
+    function updateStates(data) {
+        data.forEach(function (favorite) {
+            if (favorite.assetType === 'AppPool') {
+                var row = $('#favoritesTableBody').find('tr[data-asset-id="' + favorite.assetId + '"]');
+                var stateCell = row.find('.state-cell');
+                if (favorite.assetState === null) {
+                    stateCell.html('<i class="text-danger fst-italic">Offline</i>');
+                } else {
+                    stateCell.text(favorite.assetState);
+                    if (favorite.assetState === "Started") {
+                        stateCell.addClass("text-success");
+                    } else if (favorite.assetState === "Stopped") {
+                        stateCell.addClass("text-danger");
+                    }
+                }
+            }
+        });
+    }
+
+    $(document).ready(function () {
+        getUpdatedFavoritesData();
+    });
+</script>

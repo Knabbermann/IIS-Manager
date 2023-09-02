@@ -1,0 +1,42 @@
+﻿@page
+@model IIS_Manager.Web.Areas.User.Pages.Settings.ResetModel
+@{
+}
+<div class="container p-3">
+    <form method="post">
+        <input asp-for="User.Id" type="hidden" disabled="" />
+        <div class="row pt-4 align-items-center">
+            <div class="row pb-2">
+                <h2 class="text-primary">Reset Password</h2>
+                <hr />
+            </div>
+            <div asp-validation-summary="All" class="text-danger"></div>
+            <div class="form-floating py-2 col-12">
+                <input asp-for="User.Email" class="form-control" aria-required="true" disabled="" />
+                <label asp-for="User.Email"></label>
+                <span asp-validation-for="User.Email" class="text-danger"></span>
+            </div>
+            <div class="form-floating py-2 col-6">
+                <input asp-for="Password" class="form-control" autocomplete="new-password" aria-required="true" />
+                <label asp-for="Password"></label>
+                <span asp-validation-for="Password" class="text-danger"></span>
+            </div>
+            <div class="form-floating py-2 col-6">
+                <input asp-for="ConfirmPassword" class="form-control" autocomplete="new-password" aria-required="true" />
+                <label asp-for="ConfirmPassword"></label>
+                <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
+            </div>
+            <div class="form-floating py-2 col-6">
+                <button class="w-100 btn btn-lg btn-primary" asp-area="User" asp-page="/Settings/Reset">Reset Password</button>
+            </div>
+            <div class="form-floating py-2 col-6">
+                <a class="btn btn-outline-secondary w-100" asp-area="User" asp-page="/Settings/Index">Back</a>
+            </div>
+        </div>
+    </form>
+</div>
+
+@section Scripts
+{
+    <partial name="_ValidationScriptsPartial" />
+}

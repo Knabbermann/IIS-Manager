@@ -1,0 +1,58 @@
+﻿@page
+@model IIS_Manager.Web.Areas.User.Pages.IIS_Servers.AddModel
+@{
+}
+
+<form method="post">
+    <div class="row pt-4 align-items-center">
+        <div class="row pb-2">
+            <h2 class="text-primary">Add IIS-Server</h2>
+            <hr />
+        </div>
+        <div asp-validation-summary="All" class="text-danger"></div>
+        <div class="form-floating py-2 col-6">
+            <input asp-for="cIisServer.Address" class="form-control" aria-required="true" />
+            <label asp-for="cIisServer.Address"></label>
+            <span asp-validation-for="cIisServer.Address" class="text-danger"></span>
+        </div>
+        <div class="form-floating py-2 col-6">
+            <select asp-for="cIisServer.Service" class="form-control">
+                <option value="">Select</option>
+                @foreach (var option in IIS_Manager.Utility.StaticDetails.ServiceOptions)
+                {
+                    <option value="@option.Value">@option.Text</option>
+                }
+            </select>
+            <label asp-for="cIisServer.Service"></label>
+        </div>
+        <div class="form-floating py-2 col-6">
+            <input asp-for="cIisServer.Username" class="form-control" aria-required="true" />
+            <label asp-for="cIisServer.Username"></label>
+            <span asp-validation-for="cIisServer.Username" class="text-danger"></span>
+        </div>
+        <div class="form-floating py-2 col-6">
+            <input asp-for="cIisServer.Password" class="form-control" autocomplete="new-password" aria-required="true" />
+            <label asp-for="cIisServer.Password"></label>
+            <span asp-validation-for="cIisServer.Password" class="text-danger"></span>
+        </div>
+        <p>Optional:</p>
+        <div class="form-floating py-2 col-6">
+            <input asp-for="cIisServer.Name" class="form-control" aria-required="true" />
+            <label asp-for="cIisServer.Name"></label>
+            <span asp-validation-for="cIisServer.Name" class="text-danger"></span>
+        </div>
+        <div class="form-floating py-2 col-6">
+        </div>
+        <div class="form-floating py-2 col-6">
+            <button class="w-100 btn btn-lg btn-primary" asp-area="User" asp-page="/IIS_Servers/Add">Add IIS-Server</button>
+        </div>
+        <div class="form-floating py-2 col-6">
+            <a class="btn btn-outline-secondary w-100" asp-area="User" asp-page="/IIS_Servers/Index">Back to list</a>
+        </div>
+    </div>
+</form>
+
+@section Scripts
+    {
+    <partial name="_ValidationScriptsPartial" />
+}

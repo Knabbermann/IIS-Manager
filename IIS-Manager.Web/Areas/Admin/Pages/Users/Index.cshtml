@@ -1,0 +1,73 @@
+﻿@page
+@model IIS_Manager.Web.Areas.Admin.Pages.Users.IndexModel
+@{
+    ViewData["Title"] = "Index";
+}
+
+<div class="container p-3">
+    <div class="row pt-4 align-items-center">
+        <div class="col-6">
+            <h2 class="text-primary">User List</h2>
+        </div>
+        <div class="col-6 text-end">
+            <a class="btn btn-outline-primary" asp-area="Admin" asp-page="/Users/Create">
+                <i class="bi bi-plus-square"></i> &nbsp;Create New User
+            </a>
+        </div>
+    </div>
+    <br />
+
+    <table class="table table-bordered table-striped" style="width: 100%">
+        <thead>
+            <tr class="table-primary">
+                <th>
+                    Id
+                </th>
+                <th>
+                    Email
+                </th>
+                <th>
+                    Role
+                </th>
+                <th class="fst-italic">
+                    Action
+                </th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var obj in Model.Users)
+            {
+                <tr>
+                    <td width="30%">
+                        @obj.Id
+                    </td>
+                    <td width="20%">
+                        @obj.Email
+                    </td>
+                    <td width="20%">
+                        @{
+                            var role = Model.UserManager.GetRolesAsync(obj).Result.FirstOrDefault();
+                            if (role != null)
+                            {
+                                @role
+                            }
+                        }
+                    </td>
+                    <td width="30%">
+                        <div class="d-flex justify-content-evenly">
+                            <a class="btn btn-outline-secondary" asp-area="Admin" asp-page="/Users/Edit" asp-route-id="@obj.Id">
+                                <i class="bi bi-pencil-square"></i>&nbsp;Edit
+                            </a>
+                            <a class="btn btn-outline-warning" asp-area="Admin" asp-page="/Users/Reset" asp-route-id="@obj.Id">
+                                <i class="bi bi-slash-square"></i>&nbsp;Reset Password
+                            </a>
+                            <a class="btn btn-outline-danger" asp-area="Admin" asp-page="/Users/Delete" asp-route-id="@obj.Id">
+                                <i class="bi bi-x-square"></i>&nbsp;Delete
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
