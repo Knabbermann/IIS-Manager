@@ -2,7 +2,7 @@
 Welcome to the README file for the IIS Manager project. This file contains important information to help developers get started with the project.
 
 ## Project Overview
-The IIS Manager project is an web application for managing Internet Information Services (IIS) on Windows servers. The application allows users to see the manage their app pools from one or more IIS Servers, and it also features a built-in user management system, enabling users to not only manage app pools but also create and manage user accounts.
+The IIS Manager project is an web application for managing Internet Information Services (IIS) on Windows servers. The application allows users to manage their app pools from one or more IIS Servers, and it also features a built-in user management system, enabling users to not only manage app pools but also create and manage user accounts.
 
 ## Technologies
 - Programming Language: C#, CSS, HTML
