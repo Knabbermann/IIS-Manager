@@ -364,3 +364,6 @@ FodyWeavers.xsd
 /IIS-Manager.Web/Areas/User/Pages/Logs/Index.cshtml
 /IIS-Manager.Web/appsettings.json
 /IIS-Manager.Web/appsettings.Development.json
+/IIS-Manager.Web/Areas/User/Pages/Logs/Index.cshtml
+/IIS-Manager.API/Log/ILogController.cs
+/IIS-Manager.API/Log/LogController.cs
