@@ -1,0 +1,110 @@
+﻿@page
+@using IIS_Manager.Utility
+@model IIS_Manager.Web.Areas.User.Pages.Logs.IndexModel
+@{
+}
+
+<div class="container p-3">
+    <div class="row pt-4 align-items-center">
+        <div class="col-12">
+            <h2 class="text-primary">Logs</h2>
+        </div>
+        <div class="col-6">
+            <div class="input-group align-items-start">
+                <span class="input-group-text">
+                    <i class="bi bi-funnel"></i>
+                </span>
+                <input type="text" class="form-control mb-3" id="filterInput" placeholder="Name...">
+            </div>
+        </div>
+        <div class="col-3" style="height: 53.33px">
+            <div class="input-group align-items-start">
+                <select class="form-select" id="filterType">
+                    <option value="">All Types</option>
+                    <option value="Debug">@StaticDetails.LogTypeDebug</option>
+                    <option value="Information">@StaticDetails.LogTypeInformation</option>
+                    <option value="Warning">@StaticDetails.LogTypeWarning</option>
+                    <option value="Error">@StaticDetails.LogTypeError</option>
+                    <option value="Fatal">@StaticDetails.LogTypeFatal</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <table id="table" class="table table-bordered table-striped" style="width: 100%">
+        <thead>
+        <tr class="table-primary">
+            <th>
+                Date
+            </th>
+            <th>
+                Type
+            </th>
+            <th>
+                Message
+            </th>
+            <th>
+                User
+            </th>
+        </tr>
+        </thead>
+        <tbody>
+        @foreach (var obj in Model.Logs)
+        {
+            <tr>
+                <td width="15%">
+                    @obj.CreatedDate
+                </td>
+                <td width="15%">
+                    @obj.Type
+                </td>
+                <td width="25%">
+                    @obj.Message
+                </td>
+                <td width="15%">
+                    @obj.WebUser.Email
+                </td>
+            </tr>
+        }
+        </tbody>
+    </table>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    $(document).ready(function () {
+        $("#filterInput").on("keyup", function () {
+            var input = $(this).val().toLowerCase();
+            var table = $("#table");
+            var tr = table.find("tbody tr");
+
+            tr.each(function () {
+                var message = $(this).find("td:eq(2)").text().toLowerCase();
+                if (message.includes(input)) {
+                    $(this).show();
+                } else {
+                    $(this).hide();
+                }
+            });
+        });
+    });
+</script>
+<script>
+    $(document).ready(function () {
+        $("#filterType").on("change", function () {
+            var selectedType = $(this).val();
+            var table = $("table");
+            var tr = table.find("tbody tr");
+            console.log('tr:', tr);
+            tr.each(function () {
+                var td = $(this).find("td:eq(1)");
+                console.log('td:', td.text())
+                if (selectedType === "" || td.text().includes(selectedType)) {
+                    $(this).show();
+                } else {
+                    $(this).hide();
+                }
+            });
+        });
+    });
+</script>
