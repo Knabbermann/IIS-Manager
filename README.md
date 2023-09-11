@@ -23,7 +23,7 @@ To run and further develop the project, you'll need:
 - It should look like this:
 - ```{
   "ConnectionStrings": {
-    "WebDbContextConnection": "Server=myServerAddress;Database=myDatabase;User Id=myUsername;Password=myPassword;Trusted_Connection=False;Encrypted=False;"
+    "WebDbContextConnection": "Server=myServerAddress;Database=myDatabase;User Id=myUsername;Password=myPassword;Trusted_Connection=False;Encrypt=False;"
   },
   "Logging": {
     // Logging settings go here...
