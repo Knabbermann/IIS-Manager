@@ -38,11 +38,13 @@ namespace IIS_Manager.Web.Areas.User.Pages.IIS_Servers
 
         public IActionResult OnPost(IisServer cIisServer)
         {
+            cIisServer.Id = Guid.NewGuid().ToString();
             cIisServer.PasswordHash = _passwordEncrypter.Encrypt(cIisServer.Password, cIisServer.Id);
             ModelState.Remove("cIisServer.PasswordHash");
             ModelState.Remove("cIisServer.ErrorMessage");
             ModelState.Remove("cIisServer.AppPools");
             ModelState.Remove("cIisServer.HealthCheck");
+            ModelState.Remove("cIisServer.Id");
             if (ModelState.IsValid)
             {
                 _unitOfWork.IisServer.Add(cIisServer);

@@ -67,6 +67,7 @@ namespace IIS_Manager.Web.Areas.User.Pages.IIS_Servers
             ModelState.Remove("cIisServer.PasswordHash");
             ModelState.Remove("cIisServer.AppPools");
             ModelState.Remove("cIisServer.ErrorMessage");
+            ModelState.Remove("cIisServer.HealthCheck");
 
             if (ModelState.IsValid)
             {

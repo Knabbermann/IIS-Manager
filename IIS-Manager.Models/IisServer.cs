@@ -6,7 +6,7 @@ namespace IIS_Manager.Models
     public class IisServer
     {
         [Key]
-        public string Id { get; set; } = Guid.NewGuid().ToString();
+        public string Id { get; set; }
 
         [NotMapped]
         private string _name;

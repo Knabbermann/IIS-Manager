@@ -1,7 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
-using System.Management.Automation;
-
-namespace IIS_Manager.Models
+﻿namespace IIS_Manager.Models
 {
     public class AppPool
     {
