@@ -6,13 +6,13 @@ The IIS Manager project is an web application for managing Internet Information 
 
 ## Technologies
 - Programming Language: C#, CSS, HTML
-- Framework: .NET 6.0 & EntityFrameworkCore 6.0
+- Framework: .NET 7.0 & EntityFrameworkCore 7.0
 - Web: Razor Pages, Bootstrap
 ## Prerequisites
 To run and further develop the project, you'll need:
 
 - Visual Studio (recommended: Visual Studio 2022)
-- .NET 6.0 SDK
+- .NET 7.0 SDK
 - Basic knowledge of C# and web development
 - MSSQL Server
 ## Installation
