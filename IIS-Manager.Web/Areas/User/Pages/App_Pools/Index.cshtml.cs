@@ -67,9 +67,9 @@ namespace IIS_Manager.Web.Areas.User.Pages.App_Pools
             }
         }
 
-        public JsonResult OnGetAppPools()
+        public JsonResult OnGetAppPools(string iisServerId)
         {
-            IisServers = _unitOfWork.IisServer.GetAll();
+            IisServers = _unitOfWork.IisServer.GetAll(x => x.Id.Equals(iisServerId));
             foreach (var iisServer in IisServers)
             {
                 var cWinRmController = new WinRmController(iisServer.Id, _unitOfWork, _passwordEncrypter);

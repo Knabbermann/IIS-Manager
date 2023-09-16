@@ -11,10 +11,25 @@
             <div class="col-6">
                 <h2 class="text-primary">IIS-Server: @iisServer.Name</h2>
             </div>
+            <div class="col-6">
+                <div class="d-flex align-items-center">
+                    <button id="toggleButton_@iisServer.Id" class="btn btn-outline-secondary" data-iis-server-id="@iisServer.Id">
+                        <span id="toggleButtonIcon_@iisServer.Id" class="bi bi-caret-right"></span>
+                        <span id="toggleButtonText_@iisServer.Id">&nbsp;Show App Pools</span>
+                    </button>
+                    <button id="reloadButton_@iisServer.Id" class="btn btn-outline-secondary" data-iis-server-id="@iisServer.Id">
+                        <i class="bi bi-arrow-clockwise"></i>
+                        &nbsp;Reload App Pools
+                    </button>
+                    <span id="loadingSpinner_@iisServer.Id" class="spinner-border" role="status" style="display: none;">
+                        <span class="visually-hidden">Loading...</span>
+                    </span>
+                </div>
+            </div>
         </div>
         @if (iisServer.AppPools.Any())
         {
-            <div id="tableContainer_@iisServer.Id" class="row pt-4 align-items-center">
+            <div id="tableContainer_@iisServer.Id" class="row pt-4 align-items-center" style="display: none;">
                 <div class="col-6">
                     <div class="input-group align-items-start">
                         <span class="input-group-text">
@@ -46,7 +61,7 @@
                     </div>
                 </div>
             </div>
-            <table id="table_@iisServer.Id" class="table table-bordered table-striped" style="width: 100%">
+            <table id="table_@iisServer.Id" class="table table-bordered table-striped" style="width: 100%; display: none">
                 <thead>
                 <tr class="table-primary">
                     <th>
@@ -156,19 +171,22 @@
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
-
-    function getUpdatedAppPoolsData() {
+    function getUpdatedAppPoolsData(iisServerId) {
+        var loading = $('#loadingSpinner_' + iisServerId);
+        loading.show();
         $.ajax({
-            url: '/User/App_Pools/Index?handler=AppPools',
+            url: '/User/App_Pools/Index?handler=AppPools&iisServerId=' + iisServerId,
             type: 'GET',
             dataType: 'json',
             success: function (data) {
                 console.log('data:', data);
                 updateStates(data);
                 updateSelectedAppPoolNames();
+                loading.hide();
             },
             error: function (xhr, status, error) {
                 console.error('Error fetching updated data:', error);
+                loading.hide();
             }
         });
     }
@@ -249,10 +267,63 @@
             selectedInputRestart.val(selectedAppPoolNames.join(','));
         });
     }
-
-    $(document).ready(function () {
-        getUpdatedAppPoolsData();
-    });
-
-
 </script>
+
+<script>
+    function reloadIisServerData(iisServerId) {
+        var loading = $('#loadingSpinner_' + iisServerId);
+        loading.show();
+        $.ajax({
+            url: '/User/App_Pools/Index?handler=AppPools&iisServerId=' + iisServerId,
+            type: 'GET',
+            dataType: 'json',
+            success: function (data) {
+                console.log('Reloaded data for IIS Server ID ' + iisServerId + ':', data);
+                updateStates(data);
+                updateSelectedAppPoolNames();
+                loading.hide();
+            },
+            error: function (xhr, status, error) {
+                console.error('Error fetching updated data for IIS Server ID ' + iisServerId + ':', error);
+                loading.hide();
+            }
+        });
+    }
+</script>
+
+<script>
+    function toggleIisServerContent(iisServerId, forceHide) {
+        var table = $("#table_" + iisServerId);
+        var tableContainer = $("#tableContainer_" + iisServerId);
+        var buttonText = $("#toggleButtonText_" + iisServerId);
+        var icon = $("#toggleButtonIcon_" + iisServerId);
+
+        if (forceHide || tableContainer.is(":visible")) {
+            table.hide();
+            tableContainer.hide();
+            icon.removeClass("bi bi-caret-down").addClass("bi bi-caret-right");
+            buttonText.text("Show App Pools");
+        } else {
+            table.show();
+            tableContainer.show();
+            icon.removeClass("bi bi-caret-right").addClass("bi bi-caret-down");
+            buttonText.text("Hide App Pools");
+            getUpdatedAppPoolsData(iisServerId);
+        }
+    }
+</script>
+
+<script>
+    $(document).ready(function () {
+        $(document).on("click", "[id^=toggleButton_]", function () {
+            var iisServerId = $(this).data("iis-server-id");
+            toggleIisServerContent(iisServerId, false); 
+        });
+        $(document).on("click", "[id^=reloadButton_]", function () {
+            var iisServerId = $(this).data("iis-server-id");
+            reloadIisServerData(iisServerId);
+        });
+    });
+</script>
+
+
