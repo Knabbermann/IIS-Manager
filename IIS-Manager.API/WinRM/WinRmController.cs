@@ -15,9 +15,6 @@ namespace IIS_Manager.Controllers.WinRM
         private readonly string _serverName;
         private readonly PSCredential _credential;
 
-        private Runspace _runspace;
-        private PowerShell _powerShell;
-
         public WinRmController(string configId,
             IUnitOfWork unitOfWork,
             PasswordEncrypter passwordEncrypter)
