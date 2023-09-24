@@ -3,6 +3,8 @@
 @{
 }
 
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
 <div class="container p-3">
     <input type="hidden" value="@Model.IisServers" />
     @foreach (var iisServer in Model.IisServers)
@@ -12,7 +14,7 @@
                 <h2 class="text-primary">IIS-Server: @iisServer.Name</h2>
             </div>
             <div class="col-6">
-                <div class="d-flex align-items-center">
+                <div class="d-flex justify-content-evenly">
                     <button id="toggleButton_@iisServer.Id" class="btn btn-outline-secondary" data-iis-server-id="@iisServer.Id">
                         <span id="toggleButtonIcon_@iisServer.Id" class="bi bi-caret-right"></span>
                         <span id="toggleButtonText_@iisServer.Id">&nbsp;Show App Pools</span>
@@ -40,24 +42,71 @@
                 </div>
                 <div class="col-6 text-end" style="height: 53.33px">
                     <div class="d-flex justify-content-evenly">
-                        <form method="post" asp-area="User" asp-page="/App_Pools/Index" asp-page-handler="Start" asp-route-id="@iisServer.Id">
-                            <input type="hidden" id="selected_stop_@iisServer.Id" name="selected" value="" />
-                            <button type="submit" class="btn btn-outline-success">
-                                <i class="bi bi-play-btn"></i>&nbsp;Start Selected
-                            </button>
-                        </form>
-                        <form method="post" asp-area="User" asp-page="/App_Pools/Index" asp-page-handler="Stop" asp-route-id="@iisServer.Id">
-                            <input type="hidden" id="selected_start_@iisServer.Id" name="selected" value="" />
-                            <button type="submit" class="btn btn-outline-danger">
-                                <i class="bi bi-stop-btn"></i>&nbsp;Stop Selected
-                            </button>
-                        </form>
-                        <form method="post" asp-area="User" asp-page="/App_Pools/Index" asp-page-handler="Restart" asp-route-id="@iisServer.Id">
-                            <input type="hidden" id="selected_restart_@iisServer.Id" name="selected" value="" />
-                            <button type="submit" class="btn btn-outline-warning">
-                                <i class="bi bi-repeat"></i>&nbsp;Restart Selected
-                            </button>
-                        </form>
+                        <button type="button" class="btn btn-outline-success" id="startSelectedButton_@iisServer.Id">
+                            <i class="bi bi-play-btn"></i>&nbsp;Start Selected
+                        </button>
+                        <button type="button" class="btn btn-outline-danger" id="stopSelectedButton_@iisServer.Id">
+                            <i class="bi bi-stop-btn"></i>&nbsp;Stop Selected
+                        </button>
+                        <button type="button" class="btn btn-outline-warning" id="restartSelectedButton_@iisServer.Id">
+                            <i class="bi bi-repeat"></i>&nbsp;Restart Selected
+                        </button>
+                        <script>
+                            $('#startSelectedButton_@iisServer.Id').click(function () {
+                                var iisServerId = "@iisServer.Id";
+                                var loading = $('#loadingSpinner_' + iisServerId);
+                                loading.show();
+                                var selected = document.getElementById("selected_start_@iisServer.Id").value;
+                                var antiForgeryToken = $('[name=__RequestVerificationToken]').val();
+                                $.ajax({
+                                    type: "POST",
+                                    url: '/User/App_Pools?id=' + iisServerId + '&selected=' + selected + '&handler=Start',
+                                    data: { __RequestVerificationToken: antiForgeryToken },
+                                    success: function (results) {
+                                        reloadIisServerData(iisServerId);
+                                    },
+                                    error: function (error) {
+                                        reloadIisServerData(iisServerId);
+                                    }
+                                });
+                            });
+                            $('#stopSelectedButton_@iisServer.Id').click(function () {
+                                var iisServerId = "@iisServer.Id";
+                                var loading = $('#loadingSpinner_' + iisServerId);
+                                loading.show();
+                                var selected = document.getElementById("selected_stop_@iisServer.Id").value;
+                                var antiForgeryToken = $('[name=__RequestVerificationToken]').val();
+                                $.ajax({
+                                    type: "POST",
+                                    url: '/User/App_Pools?id=' + iisServerId + '&selected=' + selected + '&handler=Stop',
+                                    data: { __RequestVerificationToken: antiForgeryToken },
+                                    success: function (results) {
+                                        reloadIisServerData(iisServerId);
+                                    },
+                                    error: function (error) {
+                                        reloadIisServerData(iisServerId);
+                                    }
+                                });
+                            });
+                            $('#restartSelectedButton_@iisServer.Id').click(function () {
+                                var iisServerId = "@iisServer.Id";
+                                var loading = $('#loadingSpinner_' + iisServerId);
+                                loading.show();
+                                var selected = document.getElementById("selected_restart_@iisServer.Id").value;
+                                var antiForgeryToken = $('[name=__RequestVerificationToken]').val();
+                                $.ajax({
+                                    type: "POST",
+                                    url: '/User/App_Pools?id=' + iisServerId + '&selected=' + selected + '&handler=Restart',
+                                    data: { __RequestVerificationToken: antiForgeryToken },
+                                    success: function (results) {
+                                        reloadIisServerData(iisServerId);
+                                    },
+                                    error: function (error) {
+                                        reloadIisServerData(iisServerId);
+                                    }
+                                });
+                            });
+                        </script>
                     </div>
                 </div>
             </div>
@@ -121,41 +170,46 @@
             </table>
             
             <input type="hidden" id="allAppPoolNames_@iisServer.Id" value="@string.Join(",", iisServer.AppPools.Select(ap => ap.Name))" />
+            <input type="hidden" id="selected_start_@iisServer.Id" name="selected" value="" />
+            <input type="hidden" id="selected_stop_@iisServer.Id" name="selected" value="" />
+            <input type="hidden" id="selected_restart_@iisServer.Id" name="selected" value="" />
             <script>
-                var allAppPoolNames = document.getElementById("allAppPoolNames_@iisServer.Id").value;
-                var selectedInputStart = document.getElementById("selected_start_@iisServer.Id");
-                selectedInputStart.value = allAppPoolNames;
-                var selectedInputStop = document.getElementById("selected_stop_@iisServer.Id");
-                selectedInputStop.value = allAppPoolNames;
-                var selectedInputRestart = document.getElementById("selected_restart_@iisServer.Id");
-                selectedInputRestart.value = allAppPoolNames;
+                $(document).ready(function () {
+                    var allAppPoolNames = document.getElementById("allAppPoolNames_@iisServer.Id").value;
+                    var selectedInputStart = document.getElementById("selected_start_@iisServer.Id");
+                    selectedInputStart.value = allAppPoolNames;
+                    var selectedInputStop = document.getElementById("selected_stop_@iisServer.Id");
+                    selectedInputStop.value = allAppPoolNames;
+                    var selectedInputRestart = document.getElementById("selected_restart_@iisServer.Id");
+                    selectedInputRestart.value = allAppPoolNames;
 
-                document.getElementById("filterInput_@iisServer.Id").addEventListener("keyup", function () {
-                    var input, filter, table, tr, td, i, txtValue;
-                    var selectedAppPoolNames = [];
-                    input = document.getElementById("filterInput_@iisServer.Id");
-                    filter = input.value.toUpperCase();
-                    table = document.getElementById("appPoolTableBody_@iisServer.Id");
-                    tr = table.getElementsByTagName("tr");
-                    for (i = 0; i < tr.length; i++) {
-                        td = tr[i].getElementsByTagName("td")[1];
-                        if (td) {
-                            txtValue = td.textContent || td.innerText;
-                            if (txtValue.toUpperCase().indexOf(filter) > -1) {
-                                tr[i].style.display = "";
-                                selectedAppPoolNames.push(txtValue);
-                            } else {
-                                tr[i].style.display = "none";
+                    document.getElementById("filterInput_@iisServer.Id").addEventListener("keyup", function () {
+                        var input, filter, table, tr, td, i, txtValue;
+                        var selectedAppPoolNames = [];
+                        input = document.getElementById("filterInput_@iisServer.Id");
+                        filter = input.value.toUpperCase();
+                        table = document.getElementById("appPoolTableBody_@iisServer.Id");
+                        tr = table.getElementsByTagName("tr");
+                        for (i = 0; i < tr.length; i++) {
+                            td = tr[i].getElementsByTagName("td")[1];
+                            if (td) {
+                                txtValue = td.textContent || td.innerText;
+                                if (txtValue.toUpperCase().indexOf(filter) > -1) {
+                                    tr[i].style.display = "";
+                                    selectedAppPoolNames.push(txtValue);
+                                } else {
+                                    tr[i].style.display = "none";
+                                }
                             }
                         }
-                    }
 
-                    var selectedInputStart = document.getElementById("selected_start_@iisServer.Id");
-                    selectedInputStart.value = selectedAppPoolNames.join(',').replace(/\s+/g, "").replace(/,\s+/g, ",");
-                    var selectedInputStop = document.getElementById("selected_stop_@iisServer.Id");
-                    selectedInputStop.value = selectedAppPoolNames.join(',').replace(/\s+/g, "").replace(/,\s+/g, ",");
-                    var selectedInputRestart = document.getElementById("selected_restart_@iisServer.Id");
-                    selectedInputRestart.value = selectedAppPoolNames.join(',').replace(/\s+/g, "").replace(/,\s+/g, ",");
+                        var selectedInputStart = document.getElementById("selected_start_@iisServer.Id");
+                        selectedInputStart.value = selectedAppPoolNames.join(',').replace(/\s+/g, "").replace(/,\s+/g, ",");
+                        var selectedInputStop = document.getElementById("selected_stop_@iisServer.Id");
+                        selectedInputStop.value = selectedAppPoolNames.join(',').replace(/\s+/g, "").replace(/,\s+/g, ",");
+                        var selectedInputRestart = document.getElementById("selected_restart_@iisServer.Id");
+                        selectedInputRestart.value = selectedAppPoolNames.join(',').replace(/\s+/g, "").replace(/,\s+/g, ",");
+                    });
                 });
             
             </script>
@@ -169,7 +223,6 @@
     }
 </div>
 
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
     function getUpdatedAppPoolsData(iisServerId) {
         var loading = $('#loadingSpinner_' + iisServerId);
@@ -179,7 +232,6 @@
             type: 'GET',
             dataType: 'json',
             success: function (data) {
-                console.log('data:', data);
                 updateStates(data);
                 updateSelectedAppPoolNames();
                 loading.hide();
@@ -219,19 +271,71 @@
                     var actionCell = $('<td width="30%"></td>');
                     var actionButtonGroup = $('<div class="d-flex justify-content-evenly"></div>');
 
-                    var startButton = $('<button type="submit" class="btn btn-outline-success"></button>').html('<i class="bi bi-play-btn"></i>&nbsp;Start');
-                    var startForm = $('<form method="post" action="/User/App_Pools?id=' + iisServer.id + '&handler=Start"><input type="hidden" name="selected" value="' + appPool.name + '">' + '@Html.AntiForgeryToken()' + '</form>').append(startButton);
+                    var startButton = $('<button type="button" class="btn btn-outline-success" id="startButton_' + iisServer.id + '"></button>').html('<i class="bi bi-play-btn"></i>&nbsp;Start');
+                    var stopButton = $('<button type="button" class="btn btn-outline-danger" id="stopButton_' + iisServer.id + '"></button>').html('<i class="bi bi-stop-btn"></i>&nbsp;Stop');
+                    var restartButton = $('<button type="button" class="btn btn-outline-warning" id="restartButton_' + iisServer.id + '"></button>').html('<i class="bi bi-repeat"></i>&nbsp;Restart');
 
-                    var stopButton = $('<button type="submit" class="btn btn-outline-danger"></button>').html('<i class="bi bi-stop-btn"></i>&nbsp;Stop');
-                    var stopForm = $('<form method="post" action="/User/App_Pools?id=' + iisServer.id + '&handler=Stop"><input type="hidden" name="selected" value="' + appPool.name + '">' + '@Html.AntiForgeryToken()' + '</form>').append(stopButton);
-
-                    var restartButton = $('<button type="submit" class="btn btn-outline-warning"></button>').html('<i class="bi bi-repeat"></i>&nbsp;Restart');
-                    var restartForm = $('<form method="post" action="/User/App_Pools?id=' + iisServer.id + '&handler=Restart"><input type="hidden" name="selected" value="' + appPool.name + '">' + '@Html.AntiForgeryToken()' + '</form>').append(restartButton);
-
-                    actionButtonGroup.append(startForm, stopForm, restartForm);
+                    actionButtonGroup.append(startButton, stopButton, restartButton);
                     actionCell.append(actionButtonGroup);
 
                     row.append(favoriteCell, nameCell, stateCell, runtimeVersionCell, applicationsCell, actionCell);
+                    
+                    startButton.click(function () {
+                        var iisServerId = iisServer.id;
+                        var loading = $('#loadingSpinner_' + iisServerId);
+                        loading.show();
+                        var appPoolName = appPool.name;
+                        var antiForgeryToken = $('[name=__RequestVerificationToken]').val();
+                        $.ajax({
+                            type: "POST",
+                            url: '/User/App_Pools?id=' + iisServerId + '&selected=' + appPoolName + '&handler=Start',
+                            data: { __RequestVerificationToken: antiForgeryToken },
+                            success: function (results) {
+                                reloadIisServerData(iisServerId);
+                            },
+                            error: function (error) {
+                                reloadIisServerData(iisServerId);
+                            }
+                        });
+                    });
+
+                    stopButton.click(function () {
+                        var loading = $('#loadingSpinner_' + iisServerId);
+                        loading.show();
+                        var iisServerId = iisServer.id;
+                        var appPoolName = appPool.name;
+                        var antiForgeryToken = $('[name=__RequestVerificationToken]').val();
+                        $.ajax({
+                            type: "POST",
+                            url: '/User/App_Pools?id=' + iisServerId + '&selected=' + appPoolName + '&handler=Stop',
+                            data: { __RequestVerificationToken: antiForgeryToken },
+                            success: function (results) {
+                                reloadIisServerData(iisServerId);
+                            },
+                            error: function (error) {
+                                reloadIisServerData(iisServerId);
+                            }
+                        });
+                    });
+
+                    restartButton.click(function () {
+                        var loading = $('#loadingSpinner_' + iisServerId);
+                        loading.show();
+                        var iisServerId = iisServer.id;
+                        var appPoolName = appPool.name;
+                        var antiForgeryToken = $('[name=__RequestVerificationToken]').val();
+                        $.ajax({
+                            type: "POST",
+                            url: '/User/App_Pools?id=' + iisServerId + '&selected=' + appPoolName + '&handler=Restart',
+                            data: { __RequestVerificationToken: antiForgeryToken },
+                            success: function (results) {
+                                reloadIisServerData(iisServerId);
+                            },
+                            error: function (error) {
+                                reloadIisServerData(iisServerId);
+                            }
+                        });
+                    });
 
                     appPoolTableBody.append(row);
                 });
@@ -278,7 +382,6 @@
             type: 'GET',
             dataType: 'json',
             success: function (data) {
-                console.log('Reloaded data for IIS Server ID ' + iisServerId + ':', data);
                 updateStates(data);
                 updateSelectedAppPoolNames();
                 loading.hide();
@@ -325,5 +428,7 @@
         });
     });
 </script>
+
+
 
 

@@ -1,3 +1,4 @@
+using System.Management;
 using IIS_Manager.Controllers.Favorite;
 using IIS_Manager.Controllers.Log;
 using IIS_Manager.Controllers.WinRM;
@@ -92,9 +93,10 @@ namespace IIS_Manager.Web.Areas.User.Pages.App_Pools
 
             return new JsonResult(IisServers);
         }
-        
+
         public IActionResult OnPostStart(string id, string selected, string? redirect = null)
         {
+            var results = new List<string>();
             if (selected.Contains(','))
             {
                 var cAppPools = selected.Split(',');
@@ -102,15 +104,17 @@ namespace IIS_Manager.Web.Areas.User.Pages.App_Pools
                 {
                     var cWinRmController = new WinRmController(id, _unitOfWork, _passwordEncrypter);
                     var result = cWinRmController.ExecuteCommand("Start-WebAppPool", new List<KeyValuePair<string, object>>
-                        { new("Name", $"{appPool}") });
+                { new("Name", $"{appPool}") });
                     if (result[0].Equals("success"))
                     {
+                        results.Add("success:" + appPool);
                         _toastNotification.AddSuccessToastMessage($"{appPool} started successfully");
                         _logController.Log($"successfully started AppPools:'{appPool}'", HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier));
                     }
                     else
                     {
-                        _toastNotification.AddErrorToastMessage($"error while starting {appPool}: {result[1]}"); 
+                        results.Add("error:" + appPool + ":" + result[1]);
+                        _toastNotification.AddErrorToastMessage($"error while starting {appPool}: {result[1]}");
                         _logController.Log($"error while starting AppPools:'{appPool}'", HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier), StaticDetails.LogTypeError);
                     }
                 }
@@ -119,26 +123,27 @@ namespace IIS_Manager.Web.Areas.User.Pages.App_Pools
             {
                 var cWinRmController = new WinRmController(id, _unitOfWork, _passwordEncrypter);
                 var result = cWinRmController.ExecuteCommand("Start-WebAppPool", new List<KeyValuePair<string, object>>
-                    { new("Name", $"{selected}") });
+            { new("Name", $"{selected}") });
                 if (result[0].Equals("success"))
                 {
+                    results.Add("success:" + selected);
                     _toastNotification.AddSuccessToastMessage($"{selected} started successfully");
                     _logController.Log($"successfully started AppPool:'{selected}'", HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier));
                 }
                 else
                 {
+                    results.Add("error:" + selected + ":" + result[1]);
                     _toastNotification.AddErrorToastMessage($"error while starting {selected}: {result[1]}");
                     _logController.Log($"error while starting AppPool:'{selected}'", HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier), StaticDetails.LogTypeError);
                 }
             }
-            
-            OnGet();
-            if (redirect != null) return Redirect(redirect);
-            return RedirectToPage("Index");
+
+            return new JsonResult(results);
         }
 
         public IActionResult OnPostStop(string id, string selected, string? redirect = null)
         {
+            var results = new List<string>();
             if (selected.Contains(','))
             {
                 var cAppPools = selected.Split(',');
@@ -149,11 +154,13 @@ namespace IIS_Manager.Web.Areas.User.Pages.App_Pools
                         { new("Name", $"{appPool}") });
                     if (result[0].Equals("success"))
                     {
+                        results.Add("success:" + appPool);
                         _toastNotification.AddSuccessToastMessage($"{appPool} stopped successfully");
                         _logController.Log($"successfully stopped AppPools:'{appPool}'", HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier));
                     }
                     else
                     {
+                        results.Add("error:" + appPool + ":" + result[1]);
                         _toastNotification.AddErrorToastMessage($"error while stopping {appPool}: {result[1]}");
                         _logController.Log($"error while stopping AppPools:'{appPool}'", HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier), StaticDetails.LogTypeError);
                     }
@@ -166,23 +173,24 @@ namespace IIS_Manager.Web.Areas.User.Pages.App_Pools
                     { new("Name", $"{selected}") });
                 if (result[0].Equals("success"))
                 {
+                    results.Add("success:" + selected);
                     _toastNotification.AddSuccessToastMessage($"{selected} stopped successfully");
                     _logController.Log($"successfully stopped AppPool:'{selected}'", HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier));
                 }
                 else
                 {
+                    results.Add("error:" + selected + ":" + result[1]);
                     _toastNotification.AddErrorToastMessage($"error while stopping {selected}: {result[1]}");
                     _logController.Log($"error while stopping AppPool:'{selected}'", HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier), StaticDetails.LogTypeError);
                 }
             }
 
-            OnGet();
-            if (redirect != null) return Redirect(redirect);
-            return RedirectToPage("Index");
+            return new JsonResult(results);
         }
 
         public IActionResult OnPostRestart(string id, string selected, string? redirect = null)
         {
+            var results = new List<string>();
             if (selected.Contains(','))
             {
                 var cAppPools = selected.Split(',');
@@ -193,11 +201,13 @@ namespace IIS_Manager.Web.Areas.User.Pages.App_Pools
                         { new("Name", $"{appPool}") });
                     if (result[0].Equals("success"))
                     {
+                        results.Add("success:" + appPool);
                         _toastNotification.AddSuccessToastMessage($"{appPool} restarted successfully");
                         _logController.Log($"successfully restarted AppPools:'{appPool}'", HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier));
                     }
                     else
                     {
+                        results.Add("error:" + appPool + ":" + result[1]);
                         _toastNotification.AddErrorToastMessage($"error while restarting {appPool}: {result[1]}");
                         _logController.Log($"error while restarting AppPools:'{appPool}'", HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier), StaticDetails.LogTypeError);
                     }
@@ -210,19 +220,19 @@ namespace IIS_Manager.Web.Areas.User.Pages.App_Pools
                     { new("Name", $"{selected}") });
                 if (result[0].Equals("success"))
                 {
+                    results.Add("success:" + selected);
                     _toastNotification.AddSuccessToastMessage($"{selected} restarted successfully");
                     _logController.Log($"successfully stopped AppPool:'{selected}'", HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier));
                 }
                 else
                 {
+                    results.Add("error:" + selected + ":" + result[1]);
                     _toastNotification.AddErrorToastMessage($"error while restarting {selected}: {result[1]}");
                     _logController.Log($"error while restarting AppPool:'{selected}'", HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier), StaticDetails.LogTypeError);
                 }
             }
 
-            OnGet();
-            if (redirect != null) return Redirect(redirect);
-            return RedirectToPage("Index");
+            return new JsonResult(results);
         }
 
         public IActionResult OnPostSetFavorite(string id, string selected)
