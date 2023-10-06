@@ -2,3 +2,100 @@
 @model IIS_Manager.Web.Areas.User.Pages.Performance.IndexModel
 @{
 }
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<div class="container p-3">
+    <input type="hidden" value="@Model.IisServers" />
+    <div class="row pt-4 align-items-center">
+        <div class="col-6">
+            <h2 class="text-primary">IIS-Server List</h2>
+        </div>
+    </div>
+    <br />
+
+    <table class="table table-bordered table-striped" style="width: 100%">
+        <thead>
+        <tr class="table-primary">
+            <th>
+                Server
+            </th>
+            <th>
+                Processor
+            </th>
+            <th>
+                Memory
+            </th>
+            <th class="fst-italic">
+                Action
+            </th>
+        </tr>
+        </thead>
+        <tbody>
+        @foreach (var (obj, index) in Model.IisServers.Select((obj, index) => (obj, index)))
+        {
+            <input type="hidden" name="id" value="@obj.Id" />
+            <tr>
+                <td width="15%">
+                    @obj.Name
+                </td>
+                <td width="45%">
+                    @if (obj.ServerInfo != null)
+                    {
+                        <div>
+                            <p><strong>Processor name:</strong> @obj.ServerInfo.ProcessorName</p>
+                            <p><strong>Processor cores:</strong> @obj.ServerInfo.ProcessorCores</p>
+                            <p><strong>Current Load:</strong> NaN</p>
+                        </div>
+                    }
+                    else
+                    {
+                        <div>
+                            <p><strong>Error:</strong> HealthCheck failed.</p>
+                        </div>
+                    }
+                </td>
+                <td width="15%">
+                    @if (obj.ServerInfo != null)
+                    {
+                        <div>
+                            <p><strong>Memory size:</strong> @obj.ServerInfo.MemorySize GB</p>
+                            <p><strong>Current Load:</strong> NaN</p>
+                        </div>
+                    }
+                    else
+                    {
+                        <div>
+                            <p><strong>Error:</strong> HealthCheck failed.</p>
+                        </div>
+                    }
+                </td>
+                <td width="30%">
+                    <div class="d-flex justify-content-evenly">
+                        <button type="button" class="btn btn-outline-warning" id="restartButton_@obj.Id" onclick="toggleConfirmButton('@obj.Id')">
+                            <i class="bi bi-stop-btn"></i>&nbsp;Restart
+                        </button>
+                        <button type="button" class="btn btn-outline-danger" id="confirmrestartButton_@obj.Id" style="display: none;">
+                            <i class="bi bi-stop-btn"></i>&nbsp;Confirm Restart
+                        </button>
+                    </div>
+                </td>
+            </tr>
+        }
+        </tbody>
+    </table>
+</div>
+
+<script>
+    function toggleConfirmButton(id) {
+        var confirmButton = document.getElementById("confirmrestartButton_" + id);
+        if (confirmButton) {
+            // Überprüfen, ob der "Confirm Restart" Button sichtbar ist
+            if (confirmButton.style.display === "block") {
+                confirmButton.style.display = "none"; // Ausblenden, wenn sichtbar
+            } else {
+                confirmButton.style.display = "block"; // Anzeigen, wenn ausgeblendet
+            }
+        }
+    }
+</script>

@@ -7,6 +7,7 @@ using System.Management.Automation;
 using System.Management.Automation.Runspaces;
 using System.Runtime.InteropServices;
 using System.Security;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 
 namespace IIS_Manager.Controllers.WinRM
 {
@@ -153,9 +154,49 @@ namespace IIS_Manager.Controllers.WinRM
             }
         }
 
+        public string[] ExecuteScript(string script)
+        {
+            var connectionInfo = new WSManConnectionInfo
+            {
+                ComputerName = _serverName,
+                Credential = _credential
+            };
+
+            try
+            {
+                using (var runspace = RunspaceFactory.CreateRunspace(connectionInfo))
+                {
+                    runspace.Open();
+
+                    using (var powerShell = PowerShell.Create())
+                    {
+                        powerShell.Runspace = runspace;
+                        powerShell.AddScript(script);
+
+                        var result = powerShell.Invoke();
+                        runspace.Dispose();
+
+                        if (powerShell.Streams.Error.Count > 0)
+                        {
+                            var errorMessage = string.Join(Environment.NewLine,
+                                powerShell.Streams.Error.Select(err => err.Exception.Message));
+                            return new[] { "error", errorMessage };
+                        }
+
+                        var output = result.Select(p => p.ToString()).ToList();
+                        return new[] { "success", string.Join(Environment.NewLine, output) };
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                return new[] { "error", ex.Message };
+            }
+        }
+
         private static void ClearMemory(SecureString objectToClear)
         {
-            var unmanagedString = IntPtr.Zero;
+            var unmanagedString = nint.Zero;
             try
             {
                 unmanagedString = Marshal.SecureStringToGlobalAllocUnicode(objectToClear);
@@ -170,7 +211,7 @@ namespace IIS_Manager.Controllers.WinRM
             }
             finally
             {
-                if (unmanagedString != IntPtr.Zero)
+                if (unmanagedString != nint.Zero)
                     Marshal.ZeroFreeGlobalAllocUnicode(unmanagedString);
             }
         }
