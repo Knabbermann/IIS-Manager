@@ -48,7 +48,7 @@
                     @obj.AssetState
                 </td>
                 <td width="30%">
-                    <div class="btn-group d-flex">
+                    <div class="btn-group d-flex justify-content-evenly">
                         <form method="post" asp-area="User" asp-page="/Favorites/Index" asp-page-handler="Up" asp-route-displayOrder="@obj.DisplayOrder">
                             <button type="submit" class="btn btn-outline-secondary">
                                 <i class="bi bi-arrow-up-square"></i>&nbsp;Up
@@ -59,7 +59,7 @@
                                 <i class="bi bi-arrow-down-square"></i>&nbsp;Down
                             </button>
                         </form>
-                            <form method="post" asp-area="User" asp-page="/Favorites/Index" asp-page-handler="Remove" asp-route-displayOrder="@obj.DisplayOrder">
+                            <form method="post" asp-area="User" asp-page="/Favorites/Index" asp-page-handler="Remove" asp-route-id="@obj.Id">
                             <button type="submit" class="btn btn-outline-danger">
                                 <i class="bi bi-x-square"></i>&nbsp;Remove
                             </button>

@@ -7,7 +7,6 @@ using System.Management.Automation;
 using System.Management.Automation.Runspaces;
 using System.Runtime.InteropServices;
 using System.Security;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 
 namespace IIS_Manager.Controllers.WinRM
 {
