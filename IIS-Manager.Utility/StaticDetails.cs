@@ -67,5 +67,18 @@ namespace IIS_Manager.Utility
                 Write-Error $_.Exception.Message
             }
         ";
+
+        public const string ScriptGetServerInfo = @"
+            $processorInfo = Get-WmiObject Win32_Processor
+            $ramInfo = Get-WmiObject Win32_PhysicalMemory | Measure-Object -Property Capacity -Sum
+            $processorName = $processorInfo.Name
+            $coreCount = $processorInfo.NumberOfCores
+            $threadCount = $processorInfo.NumberOfLogicalProcessors
+            $ramInstalled = [math]::Round($ramInfo.Sum / 1GB, 2)
+            Write-Host ""processor: $processorName""
+            Write-Host ""cores: $coreCount""
+            Write-Host ""threads: $threadCount""
+            Write-Host ""ram: $ramInstalled GB""
+        ";
     }
 }

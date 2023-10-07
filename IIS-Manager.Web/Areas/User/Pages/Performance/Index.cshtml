@@ -1,0 +1,198 @@
+﻿@page
+@model IIS_Manager.Web.Areas.User.Pages.Performance.IndexModel
+@{
+}
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<div class="container p-3">
+    <input type="hidden" value="@Model.IisServers" />
+    <div class="row pt-4 align-items-center">
+        <div class="col-6">
+            <h2 class="text-primary">IIS-Server List</h2>
+        </div>
+    </div>
+    <br />
+
+    <table class="table table-bordered table-striped" style="width: 100%">
+        <thead>
+        <tr class="table-primary">
+            <th>
+                Server
+            </th>
+            <th>
+                Processor
+            </th>
+            <th>
+                Memory
+            </th>
+            <th class="fst-italic">
+                Action
+            </th>
+        </tr>
+        </thead>
+        <tbody>
+        @foreach (var (obj, index) in Model.IisServers.Select((obj, index) => (obj, index)))
+        {
+            <input type="hidden" name="id" value="@obj.Id" />
+            <tr>
+                <td width="15%">
+                    @obj.Name
+                </td>
+                <td width="45%">
+                        <span id="loadingSpinnerProcessor_@obj.Id" class="spinner-border" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </span>
+                    <div id="processorInfoContainer_@obj.Id">
+                        
+                    </div>
+                </td>
+                <td width="15%">
+                        <span id="loadingSpinnerMemory_@obj.Id" class="spinner-border" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </span>
+                    <div id="memoryInfoContainer_@obj.Id">
+                        
+                    </div>
+                    @* @if (obj.ServerInfo != null)
+                    {
+                        <div>
+                            <p><strong>Memory size:</strong> @obj.ServerInfo.MemorySize GB</p>
+                            <p id="memoryLoadElement_@obj.Id"><strong>Current Load:</strong> NaN</p>
+                        </div>
+                    }
+                    else
+                    {
+                        <div>
+                            <p><strong>Error:</strong> HealthCheck failed.</p>
+                        </div>
+                    } *@
+                </td>
+                <td width="30%">
+                    <div class="d-flex justify-content-evenly">
+                        <button type="button" class="btn btn-outline-warning" id="restartButton_@obj.Id" onclick="toggleConfirmButton('@obj.Id')">
+                            <i class="bi bi-stop-btn"></i>&nbsp;Restart
+                        </button>
+                            <button type="button" class="btn btn-outline-danger" id="confirmrestartButton_@obj.Id" onclick="restartServer('@obj.Id')" style="display: none;">
+                            <i class="bi bi-stop-btn"></i>&nbsp;Confirm Restart
+                        </button>
+                    </div>
+                </td>
+            </tr>
+        }
+        </tbody>
+    </table>
+</div>
+
+<script>
+    function toggleConfirmButton(id) {
+        var confirmButton = document.getElementById("confirmrestartButton_" + id);
+        if (confirmButton) {
+            if (confirmButton.style.display === "block") {
+                confirmButton.style.display = "none";
+            } else {
+                confirmButton.style.display = "block";
+            }
+        }
+    }
+
+    $(document).ready(function () {
+        var serverIds = $("[id^='processorInfoContainer_']").map(function () {
+            return this.id.replace('processorInfoContainer_', '');
+        }).get();
+        serverIds.forEach(function (serverId) {
+            updateServerInfo(serverId);
+            updateCurrentLoad(serverId);
+        });
+    });
+
+    setInterval(function () {
+        var serverIds = $("[id^='processorLoadElement_']").map(function () {
+            return this.id.replace('processorLoadElement_', '');
+        }).get();
+        serverIds.forEach(function (serverId) {
+            updateCurrentLoad(serverId);
+        });
+    }, 10000); 
+
+    function updateCurrentLoad(serverId) {
+        $.ajax({
+            url: '/User/Performance/Index?handler=UpdateCurrentLoad&serverId=' + serverId,
+            type: 'GET',
+            dataType: 'json',
+            success: function (data) {
+                var processorLoad = parseFloat(data[0]).toFixed(0);
+                var memoryLoad = parseFloat(data[1]).toFixed(0);
+
+                $('#processorLoadElement_' + serverId).html('<strong>Current Load:</strong> ' + processorLoad + '%');
+
+                $('#memoryLoadElement_' + serverId).html('<strong>Current Load:</strong> ' + memoryLoad + '%');
+            },
+            error: function () {
+                console.error('Error while updating current load.');
+            }
+        });
+    }
+
+    function updateServerInfo(serverId) {
+        $.ajax({
+            url: '/User/Performance/Index?handler=UpdateServerinfo&serverId=' + serverId,
+            type: 'GET',
+            dataType: 'json',
+            success: function (data) {
+                $('#loadingSpinnerProcessor_' + serverId).hide();
+                $('#loadingSpinnerMemory_' + serverId).hide();
+                var processorInfoContainer = $('#processorInfoContainer_' + serverId);
+                var memoryInfoContainer = $('#memoryInfoContainer_' + serverId);
+                processorInfoContainer.empty();
+                memoryInfoContainer.empty();
+                if (data.serverInfo != null) {
+                    processorInfoContainer.append(`
+                        <div>
+                            <p><strong>Processor name:</strong> ${data.serverInfo.processorName}</p>
+                            <p><strong>Processor cores:</strong> ${data.serverInfo.processorCores}</p>
+                            <p id="processorLoadElement_${serverId}"><strong>Current Load:</strong> NaN</p>
+                        </div>
+                    `);
+                    memoryInfoContainer.append(`
+                        <div>
+                            <p><strong>Memory size:</strong> ${data.serverInfo.memorySize} GB</p>
+                            <p id="memoryLoadElement_${serverId}"><strong>Current Load:</strong> NaN</p>
+                        </div>
+                    `);
+                } else {
+                    processorInfoContainer.append(`
+                        <div>
+                            <p><strong>Error:</strong> HealthCheck failed.</p>
+                        </div>
+                    `);
+                    memoryInfoContainer.append(`
+                        <div>
+                            <p><strong>Error:</strong> HealthCheck failed.</p>
+                        </div>
+                    `);
+                }
+            },
+            error: function () {
+                console.error('Error while trying to update server info.');
+                $('#loadingSpinnerProcessor_' + serverId).hide();
+                $('#loadingSpinnerMemory_' + serverId).hide();
+            }
+        });
+    }
+
+    function restartServer(serverId) {
+        $.ajax({
+            url: '/User/Performance/Index?handler=RestartServer&serverId=' + serverId,
+            type: 'GET',
+            dataType: 'json',
+            success: function (data) {
+                toggleConfirmButton(serverId);
+            },
+            error: function () {
+                toggleConfirmButton(serverId);
+                console.error('Error while trying to restart server.');
+            }
+        });
+    }
+</script>

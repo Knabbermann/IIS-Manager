@@ -38,5 +38,7 @@ namespace IIS_Manager.Models
         public string ErrorMessage { get; set; }
         [NotMapped]
         public string[] HealthCheck { get; set; }
+        [NotMapped]
+        public ServerInfo? ServerInfo { get; set; }
     }
 }
