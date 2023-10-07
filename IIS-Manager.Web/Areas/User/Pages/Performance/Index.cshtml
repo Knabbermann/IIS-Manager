@@ -40,23 +40,21 @@
                     @obj.Name
                 </td>
                 <td width="45%">
-                    @if (obj.ServerInfo != null)
-                    {
-                        <div>
-                            <p><strong>Processor name:</strong> @obj.ServerInfo.ProcessorName</p>
-                            <p><strong>Processor cores:</strong> @obj.ServerInfo.ProcessorCores</p>
-                            <p id="processorLoadElement_@obj.Id"><strong>Current Load:</strong> NaN</p>
-                        </div>
-                    }
-                    else
-                    {
-                        <div>
-                            <p><strong>Error:</strong> HealthCheck failed.</p>
-                        </div>
-                    }
+                        <span id="loadingSpinnerProcessor_@obj.Id" class="spinner-border" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </span>
+                    <div id="processorInfoContainer_@obj.Id">
+                        
+                    </div>
                 </td>
                 <td width="15%">
-                    @if (obj.ServerInfo != null)
+                        <span id="loadingSpinnerMemory_@obj.Id" class="spinner-border" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </span>
+                    <div id="memoryInfoContainer_@obj.Id">
+                        
+                    </div>
+                    @* @if (obj.ServerInfo != null)
                     {
                         <div>
                             <p><strong>Memory size:</strong> @obj.ServerInfo.MemorySize GB</p>
@@ -68,7 +66,7 @@
                         <div>
                             <p><strong>Error:</strong> HealthCheck failed.</p>
                         </div>
-                    }
+                    } *@
                 </td>
                 <td width="30%">
                     <div class="d-flex justify-content-evenly">
@@ -99,10 +97,11 @@
     }
 
     $(document).ready(function () {
-        var serverIds = $("[id^='processorLoadElement_']").map(function () {
-            return this.id.replace('processorLoadElement_', '');
+        var serverIds = $("[id^='processorInfoContainer_']").map(function () {
+            return this.id.replace('processorInfoContainer_', '');
         }).get();
         serverIds.forEach(function (serverId) {
+            updateServerInfo(serverId);
             updateCurrentLoad(serverId);
         });
     });
@@ -131,6 +130,53 @@
             },
             error: function () {
                 console.error('Error while updating current load.');
+            }
+        });
+    }
+
+    function updateServerInfo(serverId) {
+        $.ajax({
+            url: '/User/Performance/Index?handler=UpdateServerinfo&serverId=' + serverId,
+            type: 'GET',
+            dataType: 'json',
+            success: function (data) {
+                $('#loadingSpinnerProcessor_' + serverId).hide();
+                $('#loadingSpinnerMemory_' + serverId).hide();
+                var processorInfoContainer = $('#processorInfoContainer_' + serverId);
+                var memoryInfoContainer = $('#memoryInfoContainer_' + serverId);
+                processorInfoContainer.empty();
+                memoryInfoContainer.empty();
+                if (data.serverInfo != null) {
+                    processorInfoContainer.append(`
+                        <div>
+                            <p><strong>Processor name:</strong> ${data.serverInfo.processorName}</p>
+                            <p><strong>Processor cores:</strong> ${data.serverInfo.processorCores}</p>
+                            <p id="processorLoadElement_${serverId}"><strong>Current Load:</strong> NaN</p>
+                        </div>
+                    `);
+                    memoryInfoContainer.append(`
+                        <div>
+                            <p><strong>Memory size:</strong> ${data.serverInfo.memorySize} GB</p>
+                            <p id="memoryLoadElement_${serverId}"><strong>Current Load:</strong> NaN</p>
+                        </div>
+                    `);
+                } else {
+                    processorInfoContainer.append(`
+                        <div>
+                            <p><strong>Error:</strong> HealthCheck failed.</p>
+                        </div>
+                    `);
+                    memoryInfoContainer.append(`
+                        <div>
+                            <p><strong>Error:</strong> HealthCheck failed.</p>
+                        </div>
+                    `);
+                }
+            },
+            error: function () {
+                console.error('Error while trying to update server info.');
+                $('#loadingSpinnerProcessor_' + serverId).hide();
+                $('#loadingSpinnerMemory_' + serverId).hide();
             }
         });
     }

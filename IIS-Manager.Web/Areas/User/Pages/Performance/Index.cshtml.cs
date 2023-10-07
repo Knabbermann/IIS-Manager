@@ -35,15 +35,16 @@ namespace IIS_Manager.Web.Areas.User.Pages.Performance
         public void OnGet()
         {
             IisServers = _unitOfWork.IisServer.GetAll();
+        }
 
-            foreach (var iisServer in IisServers)
-            {
-                var cWinRmController = new WinRmController(iisServer.Id, _unitOfWork, _passwordEncrypter);
-                iisServer.HealthCheck = cWinRmController.HealthCheck();
-                if (iisServer.HealthCheck[0].Equals("success"))
-                    iisServer.ServerInfo = SetServerInfo(cWinRmController, iisServer);
-                else iisServer.ErrorMessage = iisServer.HealthCheck[1];
-            }
+        public JsonResult OnGetUpdateServerinfo(string serverId)
+        {
+            var iisServer = _unitOfWork.IisServer.GetFirstOrDefault(x => x.Id.Equals(serverId));
+            var cWinRmController = new WinRmController(iisServer.Id, _unitOfWork, _passwordEncrypter);
+            iisServer.HealthCheck = cWinRmController.HealthCheck();
+            if (iisServer.HealthCheck[0].Equals("success")) iisServer.ServerInfo = SetServerInfo(cWinRmController, iisServer);
+            else iisServer.ErrorMessage = iisServer.HealthCheck[1];
+            return new JsonResult(iisServer);
         }
 
         public JsonResult OnGetRestartServer(string serverId)
