@@ -54,12 +54,7 @@ namespace IIS_Manager.Web.Areas.User.Pages.IIS_Servers
 
         public IActionResult OnPost(IisServer cIisServer)
         {
-            ModelState.Remove("cIisServer.Password");
-            ModelState.Remove("cIisServer.PasswordHash");
-            ModelState.Remove("cIisServer.AppPools");
-            ModelState.Remove("cIisServer.ErrorMessage");
-
-            if (ModelState.IsValid)
+            if (cIisServer != null)
             {
                 _unitOfWork.IisServer.Remove(cIisServer);
                 _unitOfWork.SaveChanges();

@@ -12,11 +12,9 @@
                 <h2 class="text-primary">Remove IIS-Server</h2>
                 <hr />
             </div>
-            <div asp-validation-summary="All" class="text-danger"></div>
             <div class="form-floating py-2 col-6">
                 <input asp-for="cIisServer.Address" class="form-control" aria-required="true" disabled="" />
                 <label asp-for="cIisServer.Address"></label>
-                <span asp-validation-for="cIisServer.Address" class="text-danger"></span>
             </div>
             <div class="form-floating py-2 col-6">
                 <select asp-for="cIisServer.Service" class="form-control" disabled="">
@@ -31,7 +29,6 @@
             <div class="form-floating py-2 col-6">
                 <input asp-for="cIisServer.Username" class="form-control" aria-required="true" disabled="" />
                 <label asp-for="cIisServer.Username"></label>
-                <span asp-validation-for="cIisServer.Username" class="text-danger"></span>
             </div>
             <div class="form-floating py-2 col-6">
             </div>
@@ -39,7 +36,6 @@
             <div class="form-floating py-2 col-6">
                 <input asp-for="cIisServer.Name" class="form-control" aria-required="true" disabled="" />
                 <label asp-for="cIisServer.Name"></label>
-                <span asp-validation-for="cIisServer.Name" class="text-danger"></span>
             </div>
             <div class="form-floating py-2 col-6">
             </div>
