@@ -45,7 +45,7 @@
                         <div>
                             <p><strong>Processor name:</strong> @obj.ServerInfo.ProcessorName</p>
                             <p><strong>Processor cores:</strong> @obj.ServerInfo.ProcessorCores</p>
-                            <p><strong>Current Load:</strong> NaN</p>
+                            <p id="processorLoadElement_@obj.Id"><strong>Current Load:</strong> NaN</p>
                         </div>
                     }
                     else
@@ -60,7 +60,7 @@
                     {
                         <div>
                             <p><strong>Memory size:</strong> @obj.ServerInfo.MemorySize GB</p>
-                            <p><strong>Current Load:</strong> NaN</p>
+                            <p id="memoryLoadElement_@obj.Id"><strong>Current Load:</strong> NaN</p>
                         </div>
                     }
                     else
@@ -75,7 +75,7 @@
                         <button type="button" class="btn btn-outline-warning" id="restartButton_@obj.Id" onclick="toggleConfirmButton('@obj.Id')">
                             <i class="bi bi-stop-btn"></i>&nbsp;Restart
                         </button>
-                        <button type="button" class="btn btn-outline-danger" id="confirmrestartButton_@obj.Id" style="display: none;">
+                            <button type="button" class="btn btn-outline-danger" id="confirmrestartButton_@obj.Id" onclick="restartServer('@obj.Id')" style="display: none;">
                             <i class="bi bi-stop-btn"></i>&nbsp;Confirm Restart
                         </button>
                     </div>
@@ -90,12 +90,63 @@
     function toggleConfirmButton(id) {
         var confirmButton = document.getElementById("confirmrestartButton_" + id);
         if (confirmButton) {
-            // Überprüfen, ob der "Confirm Restart" Button sichtbar ist
             if (confirmButton.style.display === "block") {
-                confirmButton.style.display = "none"; // Ausblenden, wenn sichtbar
+                confirmButton.style.display = "none";
             } else {
-                confirmButton.style.display = "block"; // Anzeigen, wenn ausgeblendet
+                confirmButton.style.display = "block";
             }
         }
+    }
+
+    $(document).ready(function () {
+        var serverIds = $("[id^='processorLoadElement_']").map(function () {
+            return this.id.replace('processorLoadElement_', '');
+        }).get();
+        serverIds.forEach(function (serverId) {
+            updateCurrentLoad(serverId);
+        });
+    });
+
+    setInterval(function () {
+        var serverIds = $("[id^='processorLoadElement_']").map(function () {
+            return this.id.replace('processorLoadElement_', '');
+        }).get();
+        serverIds.forEach(function (serverId) {
+            updateCurrentLoad(serverId);
+        });
+    }, 10000); 
+
+    function updateCurrentLoad(serverId) {
+        $.ajax({
+            url: '/User/Performance/Index?handler=UpdateCurrentLoad&serverId=' + serverId,
+            type: 'GET',
+            dataType: 'json',
+            success: function (data) {
+                var processorLoad = parseFloat(data[0]).toFixed(0);
+                var memoryLoad = parseFloat(data[1]).toFixed(0);
+
+                $('#processorLoadElement_' + serverId).html('<strong>Current Load:</strong> ' + processorLoad + '%');
+
+                $('#memoryLoadElement_' + serverId).html('<strong>Current Load:</strong> ' + memoryLoad + '%');
+            },
+            error: function () {
+                console.error('Error while updating current load.');
+            }
+        });
+    }
+
+    function restartServer(serverId) {
+        $.ajax({
+            url: '/User/Performance/Index?handler=RestartServer&serverId=' + serverId,
+            type: 'GET',
+            dataType: 'json',
+            success: function (data) {
+                toggleConfirmButton(serverId);
+            },
+            error: function () {
+                toggleConfirmButton(serverId);
+                console.error('Error while trying to restart server.');
+            }
+        });
     }
 </script>

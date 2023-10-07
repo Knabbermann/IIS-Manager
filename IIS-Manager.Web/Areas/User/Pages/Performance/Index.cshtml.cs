@@ -4,10 +4,10 @@ using IIS_Manager.DataAccess.Repository.IRepository;
 using IIS_Manager.Models;
 using IIS_Manager.Utility;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using NToastNotify;
 using System.Security.Claims;
-using Microsoft.AspNetCore.Mvc;
 
 namespace IIS_Manager.Web.Areas.User.Pages.Performance
 {
@@ -44,6 +44,44 @@ namespace IIS_Manager.Web.Areas.User.Pages.Performance
                     iisServer.ServerInfo = SetServerInfo(cWinRmController, iisServer);
                 else iisServer.ErrorMessage = iisServer.HealthCheck[1];
             }
+        }
+
+        public JsonResult OnGetRestartServer(string serverId)
+        {
+            var cWinRmController = new WinRmController(serverId, _unitOfWork, _passwordEncrypter);
+            var result = cWinRmController.ExecuteScript("Restart-Computer -Force");
+            if (result[0].Equals("error"))
+            {
+                _toastNotification.AddErrorToastMessage("Error while attepting to restart server.");
+                _logController.Log("Error while attepting to restart server.", HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier), StaticDetails.LogTypeError);
+            }
+            else
+            {
+                _toastNotification.AddSuccessToastMessage("Successfully restarting server.");
+                _logController.Log("Successfully restarting server.", HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier), StaticDetails.LogTypeInformation);
+            }
+            return new JsonResult(result);
+        }
+
+        public JsonResult OnGetUpdateCurrentLoad(string serverId)
+        {
+            string[] currentLoad = { "NaN", "NaN" };
+            var cWinRmController = new WinRmController(serverId, _unitOfWork, _passwordEncrypter);
+            var result = cWinRmController.ExecuteScript("(Get-WmiObject -Class Win32_PerfFormattedData_PerfOS_Processor | Where-Object { $_.Name -eq \"_Total\" }).PercentProcessorTime");
+            if (result[0].Equals("error"))
+            {
+                _toastNotification.AddErrorToastMessage("Error while updating current load.");
+                _logController.Log("Error while updating current load.", HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier), StaticDetails.LogTypeError);
+            }
+            else currentLoad[0] = result[1];
+            result = cWinRmController.ExecuteScript("(((Get-WmiObject -Class WIN32_OperatingSystem).TotalVisibleMemorySize - (Get-WmiObject -Class WIN32_OperatingSystem).FreePhysicalMemory) * 100 / (Get-WmiObject -Class WIN32_OperatingSystem).TotalVisibleMemorySize)\r\n");
+            if (result[0].Equals("error"))
+            {
+                _toastNotification.AddErrorToastMessage("Error while updating current load.");
+                _logController.Log("Error while updating current load.", HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier), StaticDetails.LogTypeError);
+            }
+            else currentLoad[1] = result[1];
+            return new JsonResult(currentLoad);
         }
 
         private ServerInfo? SetServerInfo(WinRmController cWinRmController, IisServer cIisServer)
