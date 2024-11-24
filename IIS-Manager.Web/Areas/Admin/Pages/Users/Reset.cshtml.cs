@@ -83,6 +83,17 @@ namespace IIS_Manager.Web.Areas.Admin.Pages.Users
                 return RedirectToPage("/Users/Index");
             }
 
+            var validator = _userManager.PasswordValidators.First();
+            var validatorResult = await validator.ValidateAsync(_userManager, User, Password);
+
+            if(validatorResult.Errors.Any())
+            {
+                foreach (var error in validatorResult.Errors)
+                {
+                    ModelState.AddModelError(error.Code, error.Description);
+                }
+            }
+
             if (ModelState.IsValid)
             {
                 await _userManager.RemovePasswordAsync(User);
