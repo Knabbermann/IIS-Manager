@@ -60,48 +60,55 @@ namespace IIS_Manager.Controllers.WinRM
 
         public List<AppPool> GetAllAppPools()
         {
-            var connectionInfo = new WSManConnectionInfo
+            try
             {
-                ComputerName = _serverName,
-                Credential = _credential
-            };
-
-            var runspace = RunspaceFactory.CreateRunspace(connectionInfo);
-            runspace.Open();
-
-            using (var powerShell = PowerShell.Create())
-            {
-                powerShell.Runspace = runspace;
-                powerShell.AddScript(StaticDetails.ScriptGetAllApplicationPools);
-
-                var result = powerShell.Invoke();
-                runspace.Dispose();
-
-                if (powerShell.Streams.Error.Count > 0)
+                var connectionInfo = new WSManConnectionInfo
                 {
-                    var errorMessage = string.Join(Environment.NewLine,
-                        powerShell.Streams.Error.Select(err => err.Exception.Message));
-                    throw new Exception(errorMessage);
-                }
+                    ComputerName = _serverName,
+                    Credential = _credential
+                };
 
-                var appPools = new List<AppPool>();
-                foreach (var psObject in result)
+                var runspace = RunspaceFactory.CreateRunspace(connectionInfo);
+                runspace.Open();
+
+                using (var powerShell = PowerShell.Create())
                 {
-                    var appPool = new AppPool
+                    powerShell.Runspace = runspace;
+                    powerShell.AddScript(StaticDetails.ScriptGetAllApplicationPools);
+
+                    var result = powerShell.Invoke();
+                    runspace.Dispose();
+
+                    if (powerShell.Streams.Error.Count > 0)
                     {
-                        Name = psObject.Properties["Name"]?.Value?.ToString() ?? "Unknown",
-                        State = psObject.Properties["State"]?.Value?.ToString() ?? "Unknown",
-                        RuntimeVersion = psObject.Properties["ManagedRuntimeVersion"]?.Value?.ToString() ?? "Unknown"
-                    };
-                    var applicationsList = psObject.Properties["Applications"].Value as PSObject;
-                    if (applicationsList?.BaseObject is ArrayList appObjects)
-                    {
-                        appPool.Applications = appObjects.Cast<object>().Select(item => item.ToString()).ToList();
+                        var errorMessage = string.Join(Environment.NewLine,
+                            powerShell.Streams.Error.Select(err => err.Exception.Message));
+                        throw new Exception(errorMessage);
                     }
-                    appPools.Add(appPool);
-                }
 
-                return appPools;
+                    var appPools = new List<AppPool>();
+                    foreach (var psObject in result)
+                    {
+                        var appPool = new AppPool
+                        {
+                            Name = psObject.Properties["Name"]?.Value?.ToString() ?? "Unknown",
+                            State = psObject.Properties["State"]?.Value?.ToString() ?? "Unknown",
+                            RuntimeVersion = psObject.Properties["ManagedRuntimeVersion"]?.Value?.ToString() ?? "Unknown"
+                        };
+                        var applicationsList = psObject.Properties["Applications"].Value as PSObject;
+                        if (applicationsList?.BaseObject is ArrayList appObjects)
+                        {
+                            appPool.Applications = appObjects.Cast<object>().Select(item => item.ToString()).ToList();
+                        }
+                        appPools.Add(appPool);
+                    }
+
+                    return appPools;
+                }
+            }
+            catch (Exception ex)
+            {
+                return new List<AppPool>();
             }
             
         }

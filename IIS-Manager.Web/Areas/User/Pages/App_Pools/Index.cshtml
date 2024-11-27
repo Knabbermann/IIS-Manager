@@ -4,224 +4,123 @@
 }
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-
-<div class="container p-3">
-    <input type="hidden" value="@Model.IisServers" />
+<div style="padding-top: 50px"></div>
+<div class="accordion" id="iisAccordion">
     @foreach (var iisServer in Model.IisServers)
     {
-        <div class="row pt-4 align-items-center">
-            <div class="col-6">
-                <h2 class="text-primary">@iisServer.Name</h2>
-            </div>
-            <div class="col-6">
-                <div class="d-flex justify-content-evenly">
-                    <button id="toggleButton_@iisServer.Id" class="btn btn-outline-secondary" data-iis-server-id="@iisServer.Id">
-                        <span id="toggleButtonIcon_@iisServer.Id" class="bi bi-caret-right"></span>
-                        <span id="toggleButtonText_@iisServer.Id">&nbsp;Show App Pools</span>
-                    </button>
-                    <button id="reloadButton_@iisServer.Id" class="btn btn-outline-secondary" data-iis-server-id="@iisServer.Id">
-                        <i class="bi bi-arrow-clockwise"></i>
-                        &nbsp;Reload App Pools
-                    </button>
-                    <span id="loadingSpinner_@iisServer.Id" class="spinner-border" role="status" style="display: none;">
-                        <span class="visually-hidden">Loading...</span>
-                    </span>
+        <div class="accordion-item">
+            <h2 class="accordion-header" id="heading_@iisServer.Id">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse_@iisServer.Id" aria-expanded="false" aria-controls="collapse_@iisServer.Id">
+                    <h2 class="text-primary mb-0">@iisServer.Name</h2>
+                </button>
+            </h2>
+            <div id="collapse_@iisServer.Id" class="accordion-collapse collapse" aria-labelledby="heading_@iisServer.Id" data-bs-parent="#iisAccordion">
+                <div class="accordion-body">
+                    <div class="row pt-4 align-items-center">
+                        <div class="col-6">
+                            <h2 class="text-primary">@iisServer.Name</h2>
+                        </div>
+                        <div class="col-6">
+                            <div class="d-flex justify-content-evenly">
+                                <button id="toggleButton_@iisServer.Id" class="btn btn-outline-secondary" data-iis-server-id="@iisServer.Id">
+                                    <span id="toggleButtonIcon_@iisServer.Id" class="bi bi-caret-right"></span>
+                                    <span id="toggleButtonText_@iisServer.Id">&nbsp;Show App Pools</span>
+                                </button>
+                                <button id="reloadButton_@iisServer.Id" class="btn btn-outline-secondary" data-iis-server-id="@iisServer.Id">
+                                    <i class="bi bi-arrow-clockwise"></i>
+                                    &nbsp;Reload App Pools
+                                </button>
+                                <span id="loadingSpinner_@iisServer.Id" class="spinner-border" role="status" style="display: none;">
+                                    <span class="visually-hidden">Loading...</span>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    @if (iisServer.AppPools.Any())
+                    {
+                        <div id="tableContainer_@iisServer.Id" class="row pt-4 align-items-center" style="display: none;">
+                            <div class="col-6">
+                                <div class="input-group align-items-start">
+                                    <span class="input-group-text">
+                                        <i class="bi bi-funnel"></i>
+                                    </span>
+                                    <input type="text" class="form-control mb-3" id="filterInput_@iisServer.Id" placeholder="Name...">
+                                </div>
+                            </div>
+                            <div class="col-6 text-end" style="height: 53.33px">
+                                <div class="d-flex justify-content-evenly">
+                                    <button type="button" class="btn btn-outline-success" id="startSelectedButton_@iisServer.Id">
+                                        <i class="bi bi-play-btn"></i>&nbsp;Start Selected
+                                    </button>
+                                    <button type="button" class="btn btn-outline-danger" id="stopSelectedButton_@iisServer.Id">
+                                        <i class="bi bi-stop-btn"></i>&nbsp;Stop Selected
+                                    </button>
+                                    <button type="button" class="btn btn-outline-warning" id="restartSelectedButton_@iisServer.Id">
+                                        <i class="bi bi-repeat"></i>&nbsp;Restart Selected
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <table id="table_@iisServer.Id" class="table table-bordered table-striped" style="width: 100%; display: none">
+                            <thead>
+                                <tr class="table-primary">
+                                    <th></th>
+                                    <th>Name</th>
+                                    <th>State</th>
+                                    <th>Runtime Version</th>
+                                    <th>Applications</th>
+                                    <th class="fst-italic">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="appPoolTableBody_@iisServer.Id">
+                                <tr>
+                                    <td>
+                                        <div class="d-flex justify-content-center">
+                                            <div class="spinner-border" role="status"></div>
+                                        </div>
+                                    </td>
+                                    <td width="25%">
+                                        <div class="d-flex justify-content-center">
+                                            <div class="spinner-border" role="status"></div>
+                                        </div>
+                                    </td>
+                                    <td width="15%">
+                                        <div class="d-flex justify-content-center">
+                                            <div class="spinner-border" role="status"></div>
+                                        </div>
+                                    </td>
+                                    <td width="15%">
+                                        <div class="d-flex justify-content-center">
+                                            <div class="spinner-border" role="status"></div>
+                                        </div>
+                                    </td>
+                                    <td width="10%">
+                                        <div class="d-flex justify-content-center">
+                                            <div class="spinner-border" role="status"></div>
+                                        </div>
+                                    </td>
+                                    <td width="30%">
+                                        <div class="d-flex justify-content-center">
+                                            <div class="spinner-border" role="status"></div>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    }
+                    else
+                    {
+                        <div class="alert alert-danger" role="alert">
+                            @iisServer.ErrorMessage
+                        </div>
+                    }
                 </div>
             </div>
         </div>
-        @if (iisServer.AppPools.Any())
-        {
-            <div id="tableContainer_@iisServer.Id" class="row pt-4 align-items-center" style="display: none;">
-                <div class="col-6">
-                    <div class="input-group align-items-start">
-                        <span class="input-group-text">
-                            <i class="bi bi-funnel"></i>
-                        </span>
-                        <input type="text" class="form-control mb-3" id="filterInput_@iisServer.Id" placeholder="Name...">
-                    </div>
-                </div>
-                <div class="col-6 text-end" style="height: 53.33px">
-                    <div class="d-flex justify-content-evenly">
-                        <button type="button" class="btn btn-outline-success" id="startSelectedButton_@iisServer.Id">
-                            <i class="bi bi-play-btn"></i>&nbsp;Start Selected
-                        </button>
-                        <button type="button" class="btn btn-outline-danger" id="stopSelectedButton_@iisServer.Id">
-                            <i class="bi bi-stop-btn"></i>&nbsp;Stop Selected
-                        </button>
-                        <button type="button" class="btn btn-outline-warning" id="restartSelectedButton_@iisServer.Id">
-                            <i class="bi bi-repeat"></i>&nbsp;Restart Selected
-                        </button>
-                        <script>
-                            $('#startSelectedButton_@iisServer.Id').click(function () {
-                                var iisServerId = "@iisServer.Id";
-                                var loading = $('#loadingSpinner_' + iisServerId);
-                                loading.show();
-                                var selected = document.getElementById("selected_start_@iisServer.Id").value;
-                                var antiForgeryToken = $('[name=__RequestVerificationToken]').val();
-                                $.ajax({
-                                    type: "POST",
-                                    url: '/User/App_Pools?id=' + iisServerId + '&selected=' + selected + '&handler=Start',
-                                    data: { __RequestVerificationToken: antiForgeryToken },
-                                    success: function (results) {
-                                        reloadIisServerData(iisServerId);
-                                    },
-                                    error: function (error) {
-                                        reloadIisServerData(iisServerId);
-                                    }
-                                });
-                            });
-                            $('#stopSelectedButton_@iisServer.Id').click(function () {
-                                var iisServerId = "@iisServer.Id";
-                                var loading = $('#loadingSpinner_' + iisServerId);
-                                loading.show();
-                                var selected = document.getElementById("selected_stop_@iisServer.Id").value;
-                                var antiForgeryToken = $('[name=__RequestVerificationToken]').val();
-                                $.ajax({
-                                    type: "POST",
-                                    url: '/User/App_Pools?id=' + iisServerId + '&selected=' + selected + '&handler=Stop',
-                                    data: { __RequestVerificationToken: antiForgeryToken },
-                                    success: function (results) {
-                                        reloadIisServerData(iisServerId);
-                                    },
-                                    error: function (error) {
-                                        reloadIisServerData(iisServerId);
-                                    }
-                                });
-                            });
-                            $('#restartSelectedButton_@iisServer.Id').click(function () {
-                                var iisServerId = "@iisServer.Id";
-                                var loading = $('#loadingSpinner_' + iisServerId);
-                                loading.show();
-                                var selected = document.getElementById("selected_restart_@iisServer.Id").value;
-                                var antiForgeryToken = $('[name=__RequestVerificationToken]').val();
-                                $.ajax({
-                                    type: "POST",
-                                    url: '/User/App_Pools?id=' + iisServerId + '&selected=' + selected + '&handler=Restart',
-                                    data: { __RequestVerificationToken: antiForgeryToken },
-                                    success: function (results) {
-                                        reloadIisServerData(iisServerId);
-                                    },
-                                    error: function (error) {
-                                        reloadIisServerData(iisServerId);
-                                    }
-                                });
-                            });
-                        </script>
-                    </div>
-                </div>
-            </div>
-            <table id="table_@iisServer.Id" class="table table-bordered table-striped" style="width: 100%; display: none">
-                <thead>
-                <tr class="table-primary">
-                    <th>
-
-                    </th>
-                    <th>
-                        Name
-                    </th>
-                    <th>
-                        State
-                    </th>
-                    <th>
-                        Runtime Version
-                    </th>
-                    <th>
-                        Applications
-                    </th>
-                    <th class="fst-italic">
-                        Action
-                    </th>
-                </tr>
-                </thead>
-                <tbody id="appPoolTableBody_@iisServer.Id">
-                <tr>
-                    <td>
-                        <div class="d-flex justify-content-center">
-                            <div class="spinner-border" role="status"></div>
-                        </div>
-                    </td>
-                    <td width="25%">
-                        <div class="d-flex justify-content-center">
-                            <div class="spinner-border" role="status"></div>
-                        </div>
-                    </td>
-                    <td width="15%">
-                        <div class="d-flex justify-content-center">
-                            <div class="spinner-border" role="status"></div>
-                        </div>
-                    </td>
-                    <td width="15%">
-                        <div class="d-flex justify-content-center">
-                            <div class="spinner-border" role="status"></div>
-                        </div>
-                    </td>
-                    <td width="10%">
-                        <div class="d-flex justify-content-center">
-                            <div class="spinner-border" role="status"></div>
-                        </div>
-                    </td>
-                    <td width="30%">
-                        <div class="d-flex justify-content-center">
-                            <div class="spinner-border" role="status"></div>
-                        </div>
-                    </td>
-                    </tr>
-                </tbody>
-            </table>
-            
-            <input type="hidden" id="allAppPoolNames_@iisServer.Id" value="@string.Join(",", iisServer.AppPools.Select(ap => ap.Name))" />
-            <input type="hidden" id="selected_start_@iisServer.Id" name="selected" value="" />
-            <input type="hidden" id="selected_stop_@iisServer.Id" name="selected" value="" />
-            <input type="hidden" id="selected_restart_@iisServer.Id" name="selected" value="" />
-            <script>
-                $(document).ready(function () {
-                    var allAppPoolNames = document.getElementById("allAppPoolNames_@iisServer.Id").value;
-                    var selectedInputStart = document.getElementById("selected_start_@iisServer.Id");
-                    selectedInputStart.value = allAppPoolNames;
-                    var selectedInputStop = document.getElementById("selected_stop_@iisServer.Id");
-                    selectedInputStop.value = allAppPoolNames;
-                    var selectedInputRestart = document.getElementById("selected_restart_@iisServer.Id");
-                    selectedInputRestart.value = allAppPoolNames;
-
-                    document.getElementById("filterInput_@iisServer.Id").addEventListener("keyup", function () {
-                        var input, filter, table, tr, td, i, txtValue;
-                        var selectedAppPoolNames = [];
-                        input = document.getElementById("filterInput_@iisServer.Id");
-                        filter = input.value.toUpperCase();
-                        table = document.getElementById("appPoolTableBody_@iisServer.Id");
-                        tr = table.getElementsByTagName("tr");
-                        for (i = 0; i < tr.length; i++) {
-                            td = tr[i].getElementsByTagName("td")[1];
-                            if (td) {
-                                txtValue = td.textContent || td.innerText;
-                                if (txtValue.toUpperCase().indexOf(filter) > -1) {
-                                    tr[i].style.display = "";
-                                    selectedAppPoolNames.push(txtValue);
-                                } else {
-                                    tr[i].style.display = "none";
-                                }
-                            }
-                        }
-
-                        var selectedInputStart = document.getElementById("selected_start_@iisServer.Id");
-                        selectedInputStart.value = selectedAppPoolNames.join(',').replace(/\s+/g, "").replace(/,\s+/g, ",");
-                        var selectedInputStop = document.getElementById("selected_stop_@iisServer.Id");
-                        selectedInputStop.value = selectedAppPoolNames.join(',').replace(/\s+/g, "").replace(/,\s+/g, ",");
-                        var selectedInputRestart = document.getElementById("selected_restart_@iisServer.Id");
-                        selectedInputRestart.value = selectedAppPoolNames.join(',').replace(/\s+/g, "").replace(/,\s+/g, ",");
-                    });
-                });
-            
-            </script>
-        }
-        else
-        {
-            <div class="alert alert-danger" role="alert">
-                @iisServer.ErrorMessage
-            </div>
-        }
     }
 </div>
+
 
 <script>
     function getUpdatedAppPoolsData(iisServerId) {
